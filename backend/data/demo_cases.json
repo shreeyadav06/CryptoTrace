@@ -1,46 +1,64 @@
 {
   "CASE-001": {
     "title": "Clean VASP Attribution Case",
-    "target_address": "0x742d35cc6634c0532925a3b844bc454e4438f44e",
+    "description": "Direct multi-hop path from an unlabeled wallet to a real, Etherscan-tagged Binance hot wallet.",
+    "target_address": "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a",
     "transactions": [
       {
-        "hash": "0xa111111111111111111111111111111111111111111111111111111111111111",
-        "from": "0x742d35cc6634c0532925a3b844bc454e4438f44e",
-        "to": "0x8894e0a0c962cb723c1976a4421c95949be2d4e3",
-        "value": 2.5,
-        "timestamp": "2026-08-28T14:20:00",
-        "block": 20500000
+        "hash": "0xb4c001aa11111111111111111111111111111111111111111111111111111111",
+        "from": "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a",
+        "to": "0x765032347c528ec6769b8d4f1356e4aa48cde453",
+        "value": 4.1,
+        "timestamp": "2026-09-01T09:12:00",
+        "block": 21120500
       },
       {
-        "hash": "0xb222222222222222222222222222222222222222222222222222222222222222",
-        "from": "0x8894e0a0c962cb723c1976a4421c95949be2d4e3",
-        "to": "0x28c6c06298d514db089934071355e5743bf21d60",
-        "value": 2.48,
-        "timestamp": "2026-08-28T14:25:00",
-        "block": 20500010
+        "hash": "0xb4c001bb22222222222222222222222222222222222222222222222222222222",
+        "from": "0x765032347c528ec6769b8d4f1356e4aa48cde453",
+        "to": "0xf977814e90da44bfa03b6295a0616a897441acec",
+        "value": 4.06,
+        "timestamp": "2026-09-01T09:18:00",
+        "block": 21120512
       }
     ],
     "expected_vasp": "Binance",
     "expected_confidence_min": 80,
     "expected_hop_distance": 2,
-    "expected_risk": "LOW"
+    "expected_risk": "LOW",
+    "ground_truth_source": "Etherscan address tag \"Binance: Hot Wallet 20\" on 0xf977814e90da44bfa03b6295a0616a897441acec, verified live via web search on 2026-09-04.",
+    "ground_truth_note": "Destination address is REAL and independently verified. The seed wallet and hop-1 intermediary are synthetic (DEMO MODE fixtures, per plan Sec.1 which explicitly allows cached/prepared cases) -- only the tx hashes/timestamps and the two non-VASP addresses are fabricated, not the label being tested."
   },
   "CASE-002": {
     "title": "OFAC Sanctioned / High Risk Case",
-    "target_address": "0x1111111111111111111111111111111111111111",
-    "transactions": [],
-    "expected_vasp": "Tornado Cash / Mixer Intermediary",
-    "expected_confidence_min": 75,
+    "description": "Wallet sends funds directly (1 hop) to a real, currently-active OFAC SDN-listed address (Lazarus Group / Ronin Bridge exploiter).",
+    "target_address": "0xc3bfbab68c680a962fb9c3193b6fd2736b7db275",
+    "transactions": [
+      {
+        "hash": "0xb4c002aa33333333333333333333333333333333333333333333333333333333",
+        "from": "0xc3bfbab68c680a962fb9c3193b6fd2736b7db275",
+        "to": "0x098b716b8aaf21512996dc57eb0615e2383e2f96",
+        "value": 12.75,
+        "timestamp": "2026-09-02T03:40:00",
+        "block": 21123890
+      }
+    ],
+    "expected_vasp": "OFAC SDN: Lazarus Group (DPRK) - Ronin Bridge Exploiter",
+    "expected_confidence_min": 90,
     "expected_hop_distance": 1,
-    "expected_risk": "HIGH"
+    "expected_risk": "HIGH",
+    "ground_truth_source": "OFAC SDN List, Cyber-related Designation, 04/14/2022 (ofac.treasury.gov/recent-actions/20220414); address 0x098B716B8Aaf21512996dC57EB0615e2383E2f96 remains actively designated as of 2026-09-04 (unlike Tornado Cash, which was delisted 2025-03-21 -- confirmed via web search not to use for this case).",
+    "ground_truth_note": "The flagged address is REAL and currently sanctioned. The sending wallet is synthetic (DEMO MODE fixture). Chosen over Tornado Cash specifically because Tornado Cash was delisted from OFAC SDN in March 2025 and is no longer a defensible \"currently sanctioned\" example."
   },
   "CASE-003": {
     "title": "No Confident Attribution Edge Case",
-    "target_address": "0x9999999999999999999999999999999999999999",
+    "description": "Freshly-generated wallet address with zero on-chain transaction history and no label from any source -- the correct system behavior is to return \"No Confident Attribution\" rather than guessing.",
+    "target_address": "0xf27eced4cde3b613ddbe5ea119969efe60151b20",
     "transactions": [],
     "expected_vasp": "No Confident Attribution",
     "expected_confidence_min": 0,
     "expected_hop_distance": 0,
-    "expected_risk": "NONE"
+    "expected_risk": "NONE",
+    "ground_truth_source": "N/A by design -- ground truth for this case IS the absence of any transaction/label data.",
+    "ground_truth_note": "Address is synthetic with intentionally zero history, which is the correct fixture for this case type (an empty tx list is not a bug here, it is the test). Do NOT replace with a real address later: any real address risks eventually acquiring a tag or transaction, which would break this specific edge case."
   }
 }
