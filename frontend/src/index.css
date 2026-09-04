@@ -2,17 +2,37 @@
 @import './styles/design-tokens.css';
 
 :root {
-  font-family: 'Manrope', sans-serif;
+  /* Core Dark Theme Variables (F2 - Sep 4) */
+  --bg: #0b0f19;
+  --card: #1e293b;
+  --card-soft: #151d2d;
+  --primary: #3b82f6;
+  --primary-bright: #60a5fa;
+  --warning: #ef4444;
+  --muted: #8b98ad;
+  --line: #2a374c;
+
+  /* Domain & Graph Node Classification Tokens */
+  --node-target: #f59e0b;
+  --node-hop1: #3b82f6;
+  --node-hop2: #8b5cf6;
+  --node-hop3: #06b6d4;
+  --node-vasp: #10b981;
+  --node-risk: #ef4444;
+  --node-unknown: #64748b;
+
+  /* Typography & Defaults */
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #f8fafc;
-  background: #0b0f19;
+  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
 * { box-sizing: border-box; }
 
-body { margin: 0; min-width: 320px; min-height: 100vh; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); }
 
 button, input, select { font: inherit; }
 
-button, select, input[type='range'] { cursor: pointer; }
+button, select, input[type='range'] { cursor: pointer; }
