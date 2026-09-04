@@ -1,0 +1,46 @@
+{
+  "CASE-001": {
+    "title": "Clean VASP Attribution Case",
+    "target_address": "0x742d35cc6634c0532925a3b844bc454e4438f44e",
+    "transactions": [
+      {
+        "hash": "0xa111111111111111111111111111111111111111111111111111111111111111",
+        "from": "0x742d35cc6634c0532925a3b844bc454e4438f44e",
+        "to": "0x8894e0a0c962cb723c1976a4421c95949be2d4e3",
+        "value": 2.5,
+        "timestamp": "2026-08-28T14:20:00",
+        "block": 20500000
+      },
+      {
+        "hash": "0xb222222222222222222222222222222222222222222222222222222222222222",
+        "from": "0x8894e0a0c962cb723c1976a4421c95949be2d4e3",
+        "to": "0x28c6c06298d514db089934071355e5743bf21d60",
+        "value": 2.48,
+        "timestamp": "2026-08-28T14:25:00",
+        "block": 20500010
+      }
+    ],
+    "expected_vasp": "Binance",
+    "expected_confidence_min": 80,
+    "expected_hop_distance": 2,
+    "expected_risk": "LOW"
+  },
+  "CASE-002": {
+    "title": "OFAC Sanctioned / High Risk Case",
+    "target_address": "0x1111111111111111111111111111111111111111",
+    "transactions": [],
+    "expected_vasp": "Tornado Cash / Mixer Intermediary",
+    "expected_confidence_min": 75,
+    "expected_hop_distance": 1,
+    "expected_risk": "HIGH"
+  },
+  "CASE-003": {
+    "title": "No Confident Attribution Edge Case",
+    "target_address": "0x9999999999999999999999999999999999999999",
+    "transactions": [],
+    "expected_vasp": "No Confident Attribution",
+    "expected_confidence_min": 0,
+    "expected_hop_distance": 0,
+    "expected_risk": "NONE"
+  }
+}
