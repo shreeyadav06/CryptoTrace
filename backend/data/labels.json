@@ -13,5 +13,10 @@
     "name": "Binance",
     "type": "Exchange",
     "risk": "LOW"
+  },
+  "0x098b716b8aaf21512996dc57eb0615e2383e2f96": {
+    "name": "OFAC SDN: Lazarus Group (DPRK) - Ronin Bridge Exploiter",
+    "type": "Sanctioned Entity",
+    "risk": "HIGH"
   }
 }
