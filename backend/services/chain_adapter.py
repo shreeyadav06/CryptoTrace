@@ -1,5 +1,7 @@
 import json
 import os
+import urllib.request
+import urllib.error
 
 def fetch_transactions(address: str, mode: str) -> list[dict]:
     """
@@ -14,12 +16,28 @@ def fetch_transactions(address: str, mode: str) -> list[dict]:
     if mode == "demo":
         return _fetch_demo_transactions(address)
     elif mode == "live":
-        # Skeleton for live mode (Day 1)
-        # Will implement Etherscan integration on Day 2.
-        # Fallback to local cache immediately to prevent unhandled exceptions.
-        return _fetch_demo_transactions(address)
+        try:
+            return _fetch_live_transactions(address)
+        except Exception:
+            # Fallback to local cache immediately to prevent unhandled exceptions.
+            return _fetch_demo_transactions(address)
     
     return []
+
+def _fetch_live_transactions(address: str) -> list[dict]:
+    """Fetch from Etherscan, raising exceptions on failure so caller can fallback."""
+    api_key = os.environ.get("ETHERSCAN_API_KEY", "YourApiKeyToken")
+    url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&startblock=0&endblock=99999999&page=1&offset=100&sort=desc&apikey={api_key}"
+    
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    with urllib.request.urlopen(req, timeout=5) as response:
+        data = json.loads(response.read().decode('utf-8'))
+        
+    if data.get("status") == "1" and isinstance(data.get("result"), list):
+        return data["result"]
+    else:
+        # Rate limit or error from Etherscan
+        raise ValueError(f"Etherscan API error: {data.get('message')}")
 
 def _fetch_demo_transactions(address: str) -> list[dict]:
     """Helper to fetch transactions from demo_cases.json without any network calls."""
