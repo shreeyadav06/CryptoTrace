@@ -25,7 +25,16 @@ export const mockTraceResponse = {
     },
   ],
   graph: {
-    nodes: 8,
-    edges: 11,
+    nodes: [
+      { id: 'wallet1', label: 'Target Wallet', type: 'target', hop: 0 },
+      { id: 'wallet2', label: 'Intermediary A', type: 'wallet', hop: 1 },
+      { id: 'wallet3', label: 'Intermediary B', type: 'wallet', hop: 2 },
+      { id: 'vasp1', label: 'Example Exchange', type: 'vasp', hop: 3 },
+    ],
+    edges: [
+      { source: 'wallet1', target: 'wallet2' },
+      { source: 'wallet2', target: 'wallet3' },
+      { source: 'wallet3', target: 'vasp1' },
+    ],
   },
 }
