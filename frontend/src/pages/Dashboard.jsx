@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import WalletInput from '../components/WalletInput'
+import AttributionCard from '../components/AttributionCard'
+import EvidencePanel from '../components/EvidencePanel'
 import { mockTraceResponse } from '../data/mockData'
 
 /* ── Radar SVG (empty state graphic) ───────────────────── */
@@ -136,30 +138,13 @@ function EmptyState() {
 
 /* ── Trace Result ───────────────────────────────────────── */
 function TraceResult({ result }) {
-  const { request, attribution, trace, graph } = result
+  const { request, attribution, trace, graph, evidence } = result
 
   return (
     <div className="result-content">
 
       {/* Attribution card */}
-      <div className="attribution-card">
-        <div className="attribution-left">
-          <div className="attribution-icon">🏢</div>
-          <div>
-            <h4 className="attribution-name">
-              {attribution.vasp_name}
-              <span className="vasp-badge">Verified VASP</span>
-            </h4>
-            <p className="attribution-cluster">
-              Cluster: {request.wallet_address.slice(0, 7)}...{request.wallet_address.slice(-5)} (Hot Wallet)
-            </p>
-          </div>
-        </div>
-        <div className="attribution-right">
-          <span className="attribution-score-label">Confidence Score</span>
-          <span className="attribution-score">{attribution.confidence}%</span>
-        </div>
-      </div>
+      <AttributionCard request={request} attribution={attribution} trace={trace} />
 
       {/* Metrics */}
       <div className="metrics-grid">
@@ -209,6 +194,9 @@ function TraceResult({ result }) {
           <span className="hop-meta vasp">Identified</span>
         </div>
       </div>
+
+      {/* Evidence Panel */}
+      <EvidencePanel evidence={evidence} />
 
     </div>
   )
