@@ -72,6 +72,11 @@ def _bfs_trace(G: nx.DiGraph, seed_address: str, max_hops: int = 3) -> dict:
 
 
 def extract_subgraph_nodes_and_edges(G: nx.DiGraph, seed_address: str, max_hops: int = 3):
+    """
+    Returns (nodes, edges) restricted to the BFS-reached subgraph within max_hops.
+    node: {"id", "label", "type", "hop", "risk"}
+    edge: {"source", "target", "value", "tx_hash", "timestamp"}
+    """
     from services.labels import get_address_label
 
     trace_result = _bfs_trace(G, seed_address, max_hops)
@@ -107,10 +112,16 @@ def extract_subgraph_nodes_and_edges(G: nx.DiGraph, seed_address: str, max_hops:
             "risk": risk,
         })
 
-    edges = [
-        {"source": e["from"], "target": e["to"], "value": e["value"]}
-        for e in trace_result["edges"]
-    ]
+    edges = []
+    for e in trace_result["edges"]:
+        hashes = e.get("hashes", [])
+        edges.append({
+            "source": e["from"],
+            "target": e["to"],
+            "value": e["value"],
+            "tx_hash": hashes[0] if hashes else "",
+            "timestamp": str(e.get("timestamp", "")),
+        })
 
     return nodes, edges
 
