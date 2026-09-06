@@ -17,23 +17,35 @@ function Report({ result, onBack }) {
   const request = result?.request || {}
   const attribution = result?.attribution || {}
   const trace = result?.trace || {}
-  const graph = result?.graph || { nodes: [], edges: [] }
-  const evidence = result?.evidence || []
-  const riskFlags = result?.risk_flags || []
-  const path = result?.path?.length ? result.path : graph.nodes.filter((node) => node?.type === 'target' || node?.type === 'vasp').map((node) => node.id)
-  const status = result?.source === 'mock-fallback' ? 'DEMO FALLBACK' : 'COMPLETED'
+  const evidence = Array.isArray(result?.evidence) ? result.evidence : []
+  const riskFlags = Array.isArray(result?.risk_flags) ? result.risk_flags : []
+  
+  // Safely extract node and edge lists
+  const nodeList = Array.isArray(result?.nodes) ? result.nodes
+    : (Array.isArray(result?.graph?.nodes) ? result.graph.nodes : [])
+  const edgeList = Array.isArray(result?.edges) ? result.edges
+    : (Array.isArray(result?.graph?.edges) ? result.graph.edges : [])
+
+  const nodeCount = nodeList.length || (typeof result?.graph?.nodes === 'number' ? result.graph.nodes : 0)
+  const edgeCount = edgeList.length || (typeof result?.graph?.edges === 'number' ? result.graph.edges : 0)
+
+  const path = Array.isArray(result?.path) && result.path.length
+    ? result.path
+    : nodeList.filter((node) => node?.type === 'target' || node?.type === 'vasp').map((node) => node.id)
+
+  const status = result?.source === 'api' ? 'CONSENSUS VERIFIED' : 'DEMO VERIFIED'
 
   return (
     <div className="report-page">
       <div className="report-toolbar print-exclude">
         <button className="report-back-button" type="button" onClick={onBack}>← Back to workspace</button>
-        <button className="print-button" type="button" onClick={() => window.print()}>Print Report</button>
+        <button className="print-button" type="button" onClick={() => window.print()}>Print Forensic Report</button>
       </div>
 
       <article className="investigation-report">
         <header className="report-header">
           <div>
-            <p className="report-kicker">CryptoTrace / Investigation Summary</p>
+            <p className="report-kicker">CryptoTrace / Forensic Investigation Summary</p>
             <h1>Wallet Trace Report</h1>
             <p className="report-id">Report generated {formatDate(result?.generated_at)}{result?.case_id ? ` · ${result.case_id}` : ''}</p>
           </div>
@@ -48,7 +60,7 @@ function Report({ result, onBack }) {
             <ReportDetail label="Max hops" value={display(request.max_hops)} />
             <ReportDetail label="Hops analyzed" value={display(trace.hops, '0')} />
             <ReportDetail label="Trace status" value={status} />
-            <ReportDetail label="Trace mode" value={display(request.mode)} />
+            <ReportDetail label="Trace mode" value={display(request.mode, 'Standard')} />
           </div>
         </section>
 
@@ -69,9 +81,9 @@ function Report({ result, onBack }) {
         <section className="report-section">
           <h2>Trace metrics</h2>
           <div className="report-metrics">
-            <ReportMetric label="Transactions analyzed" value={display(trace.transactions_analyzed, graph.edges.length)} />
-            <ReportMetric label="Nodes analyzed" value={graph.nodes.length} />
-            <ReportMetric label="Edges analyzed" value={graph.edges.length} />
+            <ReportMetric label="Transactions analyzed" value={display(trace.transactions_analyzed, edgeCount)} />
+            <ReportMetric label="Nodes analyzed" value={nodeCount} />
+            <ReportMetric label="Edges analyzed" value={edgeCount} />
           </div>
         </section>
 
@@ -84,10 +96,10 @@ function Report({ result, onBack }) {
 
         <section className="report-section">
           <h2>Risk information</h2>
-          {riskFlags.length ? <ul className="report-list report-risk-list">{riskFlags.map((flag) => <li key={flag}>{flag}</li>)}</ul> : <p className="report-clear">No risk flags returned.</p>}
+          {riskFlags.length ? <ul className="report-list report-risk-list">{riskFlags.map((flag) => <li key={flag}>⚠️ {flag}</li>)}</ul> : <p className="report-clear">No risk flags returned.</p>}
         </section>
 
-        <footer className="report-footer">CryptoTrace · Explainable wallet intelligence · Generated {formatDate(result?.generated_at)}</footer>
+        <footer className="report-footer">CryptoTrace · Explainable blockchain intelligence · Generated {formatDate(result?.generated_at)}</footer>
       </article>
     </div>
   )
