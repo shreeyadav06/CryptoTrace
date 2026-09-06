@@ -16,6 +16,57 @@ def _load_demo_cases():
             return json.load(f)
     return {}
 
+def _freeze_trace_payload(
+    case_id: str,
+    chain: str,
+    input_address: str,
+    selected_vasp: str,
+    confidence: int,
+    hop_distance: int,
+    path: list,
+    evidence: list,
+    risk_flags: list,
+    nodes: list,
+    edges: list
+) -> dict:
+    """
+    Guarantees strict compliance with the frozen backend API JSON response contract.
+    Ensures all 11 required keys exist, correct data types, and valid node/edge shapes.
+    """
+    clean_nodes = []
+    for n in (nodes or []):
+        clean_nodes.append({
+            "id": str(n.get("id", "")).lower(),
+            "label": str(n.get("label", "")),
+            "type": str(n.get("type", "unknown")),
+            "hop": int(n.get("hop", 0)),
+            "risk": str(n.get("risk", "NONE")).upper()
+        })
+
+    clean_edges = []
+    for e in (edges or []):
+        clean_edges.append({
+            "source": str(e.get("source", "")).lower(),
+            "target": str(e.get("target", "")).lower(),
+            "tx_hash": str(e.get("tx_hash", "")),
+            "value": float(e.get("value", 0.0)),
+            "timestamp": str(e.get("timestamp", ""))
+        })
+
+    return {
+        "case_id": str(case_id),
+        "chain": str(chain),
+        "input_address": str(input_address),
+        "selected_vasp": str(selected_vasp),
+        "confidence": int(confidence),
+        "hop_distance": int(hop_distance),
+        "path": [str(p) for p in (path or [])],
+        "evidence": [str(ev) for ev in (evidence or [])],
+        "risk_flags": [str(rf) for rf in (risk_flags or [])],
+        "nodes": clean_nodes,
+        "edges": clean_edges
+    }
+
 @trace_bp.route("/api/trace", methods=["POST"])
 def execute_trace():
     """
@@ -88,6 +139,17 @@ def execute_trace():
             evidence = attribution_result.get("evidence", [])
             risk_flags = attribution_result.get("risk_flags", [])
 
+            # Dynamic check from risk service if available (Step 2.7 by B2)
+            try:
+                from services.risk import check_risk_flags
+                service_flags = check_risk_flags(graph)
+                if service_flags and isinstance(service_flags, list):
+                    for flag in service_flags:
+                        if flag not in risk_flags:
+                            risk_flags.append(flag)
+            except (ImportError, Exception):
+                pass
+
             # Fallback alignment with ground truth demo case if configured
             if matched_case_info:
                 if selected_vasp == "No Confident Attribution" and matched_case_info.get("expected_vasp"):
@@ -97,19 +159,28 @@ def execute_trace():
                 if matched_case_info.get("expected_risk") == "HIGH" and not risk_flags:
                     risk_flags = ["OFAC Sanctioned Entity"]
 
-            response_payload = {
-                "case_id": matched_case_id or f"TRACE-{address[:8]}",
-                "chain": chain,
-                "input_address": address,
-                "selected_vasp": selected_vasp,
-                "confidence": confidence,
-                "hop_distance": hop_distance,
-                "path": path,
-                "evidence": evidence,
-                "risk_flags": risk_flags,
-                "nodes": nodes,
-                "edges": edges
-            }
+            # Ensure node risk reflects risk_flags for high-risk entities
+            if risk_flags:
+                for node in nodes:
+                    if node.get("risk") == "NONE" and (
+                        "OFAC" in node.get("label", "") or
+                        (node.get("type") in ("vasp", "unknown") and any("sanction" in f.lower() or "high risk" in f.lower() for f in risk_flags))
+                    ):
+                        node["risk"] = "HIGH"
+
+            response_payload = _freeze_trace_payload(
+                case_id=matched_case_id or f"TRACE-{address[:8]}",
+                chain=chain,
+                input_address=address,
+                selected_vasp=selected_vasp,
+                confidence=confidence,
+                hop_distance=hop_distance,
+                path=path,
+                evidence=evidence,
+                risk_flags=risk_flags,
+                nodes=nodes,
+                edges=edges
+            )
             return jsonify(response_payload), 200
 
         # Generic response for isolated / zero-history addresses
@@ -125,19 +196,19 @@ def execute_trace():
             hop = 0
             risk_flags = []
 
-        response_payload = {
-            "case_id": matched_case_id or f"TRACE-{address[:8]}",
-            "chain": chain,
-            "input_address": address,
-            "selected_vasp": vasp,
-            "confidence": conf,
-            "hop_distance": hop,
-            "path": [address],
-            "evidence": ["No outgoing/incoming transactions connecting to a known VASP within 3 hops."],
-            "risk_flags": risk_flags,
-            "nodes": [{"id": address, "label": "Target Wallet", "type": "target", "hop": 0, "risk": "NONE"}],
-            "edges": []
-        }
+        response_payload = _freeze_trace_payload(
+            case_id=matched_case_id or f"TRACE-{address[:8]}",
+            chain=chain,
+            input_address=address,
+            selected_vasp=vasp,
+            confidence=conf,
+            hop_distance=hop,
+            path=[address],
+            evidence=["No outgoing/incoming transactions connecting to a known VASP within 3 hops."],
+            risk_flags=risk_flags,
+            nodes=[{"id": address, "label": "Target Wallet", "type": "target", "hop": 0, "risk": "NONE"}],
+            edges=[]
+        )
         return jsonify(response_payload), 200
 
     except Exception as e:
