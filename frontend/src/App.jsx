@@ -9,7 +9,10 @@ function App() {
           <span className="brand-mark">CT</span>
           <span>CryptoTrace</span>
         </a>
-        <span className="environment-badge">DEMO MODE</span>
+        <span className="environment-badge">
+          <span className="environment-badge-dot" />
+          Demo Mode
+        </span>
       </header>
       <Dashboard />
     </main>
