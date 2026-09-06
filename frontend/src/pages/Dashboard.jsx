@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import WalletInput from '../components/WalletInput'
+<<<<<<< Updated upstream
+=======
+import AttributionCard from '../components/AttributionCard'
+import EvidencePanel from '../components/EvidencePanel'
+import LoadingState from '../components/LoadingState'
+>>>>>>> Stashed changes
 import { mockTraceResponse } from '../data/mockData'
 import TransactionGraph from '../graph/TransactionGraph'
 import { traceWallet } from '../services/api'
+import Report from './Report'
 
 function normalizeGraphData(result) {
   const graph = result?.graph
@@ -43,6 +50,8 @@ function normalizeTraceResponse(response, request) {
     source: 'api',
     case_id: response?.case_id,
     risk_flags: response?.risk_flags || [],
+    path: Array.isArray(response?.path) ? response.path : [],
+    generated_at: response?.generated_at,
   }
 }
 
@@ -50,6 +59,7 @@ function Dashboard() {
   const [traceResult, setTraceResult] = useState(null)
   const [traceError, setTraceError] = useState('')
   const [isTracing, setIsTracing] = useState(false)
+  const [isReportOpen, setIsReportOpen] = useState(false)
 
   async function handleTrace(request) {
     setTraceError('')
@@ -59,13 +69,37 @@ function Dashboard() {
       const response = await traceWallet(request)
       setTraceResult(normalizeTraceResponse(response, request))
     } catch (error) {
-      setTraceError(`Live trace unavailable: ${error.message} Showing demo data instead.`)
-      setTraceResult({ ...mockTraceResponse, request, source: 'mock-fallback' })
+      setTraceError(`Trace request failed: ${error.message}`)
+      if (!traceResult) setTraceResult({ ...mockTraceResponse, request, source: 'mock-fallback' })
     } finally {
       setIsTracing(false)
     }
   }
 
+<<<<<<< Updated upstream
+=======
+  function togglePreview() {
+    setTraceError('')
+    if (traceResult) {
+      setTraceResult(null)
+    } else {
+      setTraceResult({
+        ...mockTraceResponse,
+        request: {
+          wallet_address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+          chain: 'Ethereum',
+          max_hops: 3,
+          mode: 'standard',
+        },
+      })
+    }
+  }
+
+  if (isReportOpen && traceResult) {
+    return <Report result={traceResult} onBack={() => setIsReportOpen(false)} />
+  }
+
+>>>>>>> Stashed changes
   return (
     <div className="dashboard">
       <section className="dashboard-intro">
@@ -84,7 +118,7 @@ function Dashboard() {
       </section>
 
       <section className="workspace-grid">
-        <WalletInput onTrace={handleTrace} />
+        <WalletInput onTrace={handleTrace} isLoading={isTracing} />
 
         <section className="result-panel" aria-live="polite">
           <div className="panel-heading">
@@ -95,10 +129,15 @@ function Dashboard() {
             {traceResult && <span className="success-pill">{traceResult.source === 'api' ? 'Complete' : 'Demo fallback'}</span>}
           </div>
 
-          {traceError && <p className="trace-error" role="status">{traceError}</p>}
+          {traceError && (
+            <div className="error-toast" role="alert">
+              <span>{traceError}</span>
+              <button type="button" aria-label="Dismiss error" onClick={() => setTraceError('')}>×</button>
+            </div>
+          )}
 
           {isTracing ? (
-            <div className="empty-state"><h3>Tracing wallet...</h3><p>Waiting for the backend transaction graph.</p></div>
+            <LoadingState message="Tracing wallet..." />
           ) : !traceResult ? (
             <div className="empty-state">
               <div className="empty-icon">+</div>
@@ -106,7 +145,7 @@ function Dashboard() {
               <p>Enter a wallet address and click Trace to inspect its nearest VASP.</p>
             </div>
           ) : (
-            <TraceResult result={traceResult} />
+            <TraceResult result={traceResult} onOpenReport={() => setIsReportOpen(true)} />
           )}
         </section>
       </section>
@@ -114,17 +153,46 @@ function Dashboard() {
   )
 }
 
+<<<<<<< Updated upstream
 function TraceResult({ result }) {
+=======
+/* -- Empty State ------------------------------------------ */
+function EmptyState() {
+  return (
+    <div className="empty-state">
+      <RadarGraphic />
+      <h3>No trace results yet</h3>
+      <p>Enter a wallet address and click Trace to inspect its nearest VASP.</p>
+    </div>
+  )
+}
+
+/* -- Trace Result ----------------------------------------- */
+function TraceResult({ result, onOpenReport }) {
+>>>>>>> Stashed changes
   const { request, attribution, trace, evidence } = result
   const graphData = normalizeGraphData(result)
 
   return (
     <div className="result-content">
+<<<<<<< Updated upstream
       <div className="attribution-hero">
         <div>
           <span className="result-label">Nearest VASP</span>
           <h3>{attribution.vasp_name}</h3>
           <p>{attribution.vasp_type}</p>
+=======
+      <AttributionCard request={request} attribution={attribution} trace={trace} />
+
+      <div className="result-actions print-exclude">
+        <button className="report-link-button" type="button" onClick={onOpenReport}>View investigation report →</button>
+      </div>
+      
+      <div className="metrics-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
+        <div className="metric-card" style={{ background: "rgba(15,23,42,0.5)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(30,41,59,0.8)" }}>
+          <span className="metric-label" style={{ display: "block", color: "#94a3b8", fontSize: "0.65rem", textTransform: "uppercase", marginBottom: "0.5rem" }}>Path Distance</span>
+          <span className="metric-value" style={{ fontSize: "1.1rem", fontWeight: "600", color: "#fff" }}>{trace.hops} Hops</span>
+>>>>>>> Stashed changes
         </div>
         <div className="confidence-score">
           <strong>{attribution.confidence}%</strong>

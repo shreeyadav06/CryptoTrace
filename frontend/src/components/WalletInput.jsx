@@ -2,8 +2,13 @@ import { useState } from 'react'
 
 const chains = ['Ethereum', 'Bitcoin', 'BNB Smart Chain', 'Polygon', 'Tron']
 
+<<<<<<< Updated upstream
 function WalletInput({ onTrace }) {
   const [walletAddress, setWalletAddress] = useState('')
+=======
+function WalletInput({ onTrace, isLoading = false }) {
+  const [walletAddress, setWalletAddress] = useState('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
+>>>>>>> Stashed changes
   const [chain, setChain] = useState('Ethereum')
   const [maxHops, setMaxHops] = useState(3)
   const [mode, setMode] = useState('standard')
@@ -108,9 +113,16 @@ function WalletInput({ onTrace }) {
 
       {error && <p className="form-error" id="wallet-error">{error}</p>}
 
+<<<<<<< Updated upstream
       <button className="trace-button" type="submit">
         <span>Trace wallet</span>
         <span aria-hidden="true">-&gt;</span>
+=======
+      {/* Submit */}
+      <button className="trace-button" type="submit" disabled={isLoading}>
+        <span>{isLoading ? 'Tracing...' : 'Trace wallet'}</span>
+        <span className="trace-button-icon">→</span>
+>>>>>>> Stashed changes
       </button>
     </form>
   )

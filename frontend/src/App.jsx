@@ -4,7 +4,7 @@ import './App.css'
 function App() {
   return (
     <main className="app-shell">
-      <header className="topbar">
+      <header className="topbar print-exclude">
         <a className="brand" href="/" aria-label="CryptoTrace home">
           <span className="brand-mark">CT</span>
           <span>CryptoTrace</span>
