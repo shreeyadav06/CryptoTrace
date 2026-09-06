@@ -31,10 +31,19 @@ def execute_trace():
     }
     """
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True)
+        if data is None:
+            return jsonify({"error": "Request body must be valid JSON"}), 400
+        data = data or {}
+
         address = str(data.get("address", "")).strip().lower()
         chain = str(data.get("chain", "ethereum")).lower()
-        max_hops = int(data.get("max_hops", 3))
+
+        try:
+            max_hops = int(data.get("max_hops", 3))
+        except (TypeError, ValueError):
+            return jsonify({"error": "max_hops must be an integer"}), 400
+
         mode = str(data.get("mode", "demo")).lower()
 
         if not address:
