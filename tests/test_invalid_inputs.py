@@ -130,7 +130,7 @@ class TestMalformedOtherFields:
 
 
 class TestNoConfidentAttributionPath:
-     def test_never_seen_random_address_is_no_confident_attribution(self, client):
+    def test_never_seen_random_address_is_no_confident_attribution(self, client):
         resp = client.post("/api/trace", json={
             "chain": "ethereum",
             "address": "0x" + "c7" * 20,
