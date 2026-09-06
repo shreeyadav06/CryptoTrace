@@ -2,6 +2,7 @@ import { useState } from 'react'
 import WalletInput from '../components/WalletInput'
 import AttributionCard from '../components/AttributionCard'
 import EvidencePanel from '../components/EvidencePanel'
+import RiskPanel from '../components/RiskPanel'
 import { mockTraceResponse } from '../data/mockData'
 
 /* ── Radar SVG (empty state graphic) ───────────────────── */
@@ -53,10 +54,10 @@ function Dashboard() {
       setTraceResult({
         ...mockTraceResponse,
         request: {
-          wallet_address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+          wallet_address: '0xc3bfbab68c680a962fb9c3193b6fd2736b7db275',
           chain: 'Ethereum',
           max_hops: 3,
-          mode: 'standard',
+          mode: 'demo',
         },
       })
     }
@@ -138,10 +139,39 @@ function EmptyState() {
 
 /* ── Trace Result ───────────────────────────────────────── */
 function TraceResult({ result }) {
-  const { request, attribution, trace, graph, evidence } = result
+  const { request, attribution, trace, graph, evidence, risk_flags, case_id } = result
+
+  // Resolve node/edge arrays — API puts them at top level, mock may nest inside graph
+  const nodeList = Array.isArray(result.nodes) ? result.nodes
+    : (Array.isArray(graph?.nodes) ? graph.nodes : [])
+  const edgeList = Array.isArray(result.edges) ? result.edges
+    : (Array.isArray(graph?.edges) ? graph.edges : [])
+
+  // Sort nodes by hop for the hop sequence display
+  const sortedNodes = [...nodeList].sort((a, b) => (a.hop ?? 0) - (b.hop ?? 0))
+
+  // Find the edge connecting two nodes to show ETH value
+  const findEdgeValue = (fromId, toId) => {
+    const edge = edgeList.find(
+      (e) => (e.source === fromId && e.target === toId) || (e.source === toId && e.target === fromId)
+    )
+    return edge?.value != null ? `${edge.value} ETH` : null
+  }
+
+  // Node count for metrics — use array length if available, else graph.nodes (count)
+  const nodeCount = nodeList.length || (typeof graph?.nodes === 'number' ? graph.nodes : 0)
 
   return (
     <div className="result-content">
+
+      {/* Risk alert — renders only when sanctioned entities detected */}
+      <RiskPanel
+        riskFlags={risk_flags}
+        caseId={case_id}
+        nodes={nodeList}
+        edges={edgeList}
+        attribution={attribution}
+      />
 
       {/* Attribution card */}
       <AttributionCard request={request} attribution={attribution} trace={trace} />
@@ -158,41 +188,64 @@ function TraceResult({ result }) {
         </div>
         <div className="metric-card">
           <span className="metric-label">Graph Nodes</span>
-          <span className="metric-value">{graph.nodes} Nodes</span>
+          <span className="metric-value">{nodeCount} Nodes</span>
         </div>
       </div>
 
-      {/* Hop Sequence */}
+      {/* Hop Sequence — dynamically rendered from graph node data */}
       <div className="hop-sequence">
         <span className="hop-sequence-label">Attribution Hop Sequence</span>
 
-        <div className="hop-step">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', minWidth: 0 }}>
-            <span className="hop-badge">0</span>
-            <span className="hop-addr">{request.wallet_address.slice(0, 20)}... (Origin)</span>
+        {sortedNodes.length > 0 ? (
+          sortedNodes.map((node, i) => {
+            const isTarget = node.type === 'target' || node.hop === 0
+            const isVasp = node.type === 'vasp'
+            const isRisky = node.risk === 'HIGH'
+            const prevNode = i > 0 ? sortedNodes[i - 1] : null
+            const edgeValue = prevNode ? findEdgeValue(prevNode.id, node.id) : null
+
+            // Determine display label
+            let displayLabel = node.id
+            if (isTarget) {
+              displayLabel = `${node.id.slice(0, 20)}... (Origin)`
+            } else if (isVasp) {
+              displayLabel = `${node.label || attribution.vasp_name} (Destination)`
+            } else {
+              displayLabel = `${node.id.slice(0, 20)}... (Intermediary)`
+            }
+
+            // Determine step class
+            let stepClass = 'hop-step'
+            if (isVasp) stepClass += ' target'
+            if (isRisky) stepClass += ' flagged'
+
+            return (
+              <div key={node.id}>
+                {i > 0 && <div className="hop-arrow">↓</div>}
+                <div className={stepClass}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', minWidth: 0 }}>
+                    <span className="hop-badge">{node.hop ?? i}</span>
+                    <span className="hop-addr" style={isVasp ? { fontWeight: 600, color: '#fff' } : undefined}>
+                      {displayLabel}
+                    </span>
+                  </div>
+                  <span className={`hop-meta${isVasp ? ' vasp' : ''}${edgeValue ? ' eth' : ''}`}>
+                    {isTarget ? 'Direct' : isVasp ? 'Identified' : edgeValue || `Hop ${node.hop}`}
+                  </span>
+                </div>
+              </div>
+            )
+          })
+        ) : (
+          /* Fallback if no node data */
+          <div className="hop-step">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', minWidth: 0 }}>
+              <span className="hop-badge">0</span>
+              <span className="hop-addr">{request.wallet_address.slice(0, 20)}... (Origin)</span>
+            </div>
+            <span className="hop-meta">Direct</span>
           </div>
-          <span className="hop-meta">Direct</span>
-        </div>
-
-        <div className="hop-arrow">↓</div>
-
-        <div className="hop-step">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', minWidth: 0 }}>
-            <span className="hop-badge">1</span>
-            <span className="hop-addr">0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE (Intermediary)</span>
-          </div>
-          <span className="hop-meta eth">8.2 ETH</span>
-        </div>
-
-        <div className="hop-arrow">↓</div>
-
-        <div className="hop-step target">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', minWidth: 0 }}>
-            <span className="hop-badge">2</span>
-            <span className="hop-addr" style={{ fontWeight: 600, color: '#fff' }}>{attribution.vasp_name}: Hot Wallet (Target VASP)</span>
-          </div>
-          <span className="hop-meta vasp">Identified</span>
-        </div>
+        )}
       </div>
 
       {/* Evidence Panel */}
