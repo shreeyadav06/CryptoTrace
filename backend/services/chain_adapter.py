@@ -2,6 +2,7 @@ import json
 import os
 import urllib.request
 import urllib.error
+import time
 
 def fetch_transactions(address: str, mode: str) -> list[dict]:
     """
@@ -25,19 +26,39 @@ def fetch_transactions(address: str, mode: str) -> list[dict]:
     return []
 
 def _fetch_live_transactions(address: str) -> list[dict]:
-    """Fetch from Etherscan, raising exceptions on failure so caller can fallback."""
+    """Fetch from Etherscan, raising exceptions on failure so caller can fallback.
+    Implements exponential backoff for rate limits."""
     api_key = os.environ.get("ETHERSCAN_API_KEY", "YourApiKeyToken")
     url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&startblock=0&endblock=99999999&page=1&offset=100&sort=desc&apikey={api_key}"
     
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req, timeout=5) as response:
-        data = json.loads(response.read().decode('utf-8'))
-        
-    if data.get("status") == "1" and isinstance(data.get("result"), list):
-        return data["result"]
-    else:
-        # Rate limit or error from Etherscan
-        raise ValueError(f"Etherscan API error: {data.get('message')}")
+    
+    max_retries = 3
+    base_delay = 1.0
+    
+    for attempt in range(max_retries):
+        try:
+            with urllib.request.urlopen(req, timeout=5) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                
+            if data.get("status") == "1" and isinstance(data.get("result"), list):
+                return data["result"]
+            else:
+                # Etherscan often returns status "0" for rate limit or no transactions
+                message = str(data.get('message', '')).lower()
+                result = data.get('result', '')
+                if 'rate limit' in message or 'max rate limit' in str(result).lower():
+                    if attempt < max_retries - 1:
+                        time.sleep(base_delay * (2 ** attempt))
+                        continue
+                raise ValueError(f"Etherscan API error: {data.get('message')} - {result}")
+        except urllib.error.URLError as e:
+            if attempt < max_retries - 1:
+                time.sleep(base_delay * (2 ** attempt))
+                continue
+            raise ValueError(f"Etherscan connection error: {str(e)}")
+            
+    raise ValueError("Max retries exceeded for Etherscan API")
 
 def _fetch_demo_transactions(address: str) -> list[dict]:
     """Helper to fetch transactions from demo_cases.json without any network calls."""
