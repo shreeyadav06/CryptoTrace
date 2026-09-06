@@ -27,13 +27,13 @@ def rank_vasp_candidates(G, address: str) -> dict:
     direct_info = get_address_label(address)
     if direct_info:
         if direct_info.get("risk") == "HIGH":
-            risk_flags.append(f"{direct_info['name']} flagged HIGH risk")
+            risk_flags.append(f"{direct_info.get('label', direct_info.get('name'))} flagged HIGH risk")
         return {
-            "selected_vasp": direct_info["name"],
+            "selected_vasp": direct_info.get("label", direct_info.get("name")),
             "confidence": 100,
             "hop_distance": 0,
             "path": [address],
-            "evidence": [f"Target wallet is itself a directly labelled {direct_info['name']} address ({direct_info.get('type', 'Unknown type')})."],
+            "evidence": [f"Target wallet is itself a directly labelled {direct_info.get('label', direct_info.get('name'))} address ({direct_info.get('type', 'Unknown type')})."],
             "risk_flags": risk_flags,
         }
 
@@ -49,7 +49,7 @@ def rank_vasp_candidates(G, address: str) -> dict:
         if info:
             candidates.append({"address": node["address"], "info": info, "hop": node["hop_distance"]})
             if info.get("risk") == "HIGH":
-                flag = f"{info['name']} flagged HIGH risk"
+                flag = f"{info.get('label', info.get('name'))} flagged HIGH risk"
                 if flag not in risk_flags:
                     risk_flags.append(flag)
 
@@ -70,13 +70,13 @@ def rank_vasp_candidates(G, address: str) -> dict:
 
     path = trace_result["paths"].get(best["address"], [])
     evidence = [
-        f"{best['hop']}-hop relationship to verified {best_info['name']} address ({best_info.get('type', 'Unknown type')})."
+        f"{best['hop']}-hop relationship to verified {best_info.get('label', best_info.get('name'))} address ({best_info.get('type', 'Unknown type')})."
     ]
     if path_count > 1:
         evidence.append(f"{path_count} independent transaction paths support this connection.")
 
     return {
-        "selected_vasp": best_info["name"],
+        "selected_vasp": best_info.get("label", best_info.get("name")),
         "confidence": confidence,
         "hop_distance": best["hop"],
         "path": path,
