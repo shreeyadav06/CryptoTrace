@@ -1175,4 +1175,75 @@ h2 {
   .metrics-grid { grid-template-columns: 1fr 1fr; }
   .attribution-card { flex-direction: column; align-items: flex-start; }
   .attribution-right { text-align: left; }
+}/* -- F1 NEW COMPONENTS -------------------------------------- */
+.loading-state {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 360px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  animation: loadingSpin .9s linear infinite;
+  border: 3px solid rgba(129, 140, 248, .2);
+  border-radius: 50%;
+  border-top-color: var(--accent-cyan);
+  height: 42px;
+  margin-bottom: 1.25rem;
+  width: 42px;
+}
+
+@keyframes loadingSpin { to { transform: rotate(360deg); } }
+
+.loading-state h3 { color: #fff; font-size: 1rem; margin: 0 0 .5rem; }
+.loading-state p { color: #94a3b8; font-size: .85rem; line-height: 1.6; margin: 0; max-width: 300px; }
+
+.error-toast {
+  align-items: flex-start;
+  background: rgba(127, 29, 29, .26);
+  border: 1px solid rgba(248, 113, 113, .38);
+  border-radius: 8px;
+  color: #fecaca;
+  display: flex;
+  font-size: .78rem;
+  gap: .75rem;
+  justify-content: space-between;
+  line-height: 1.5;
+  margin: 1rem 1.75rem 0;
+  padding: .7rem .8rem .7rem 1rem;
+}
+
+.error-toast button {
+  background: none;
+  border: 0;
+  color: #fecaca;
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.result-actions { display: flex; justify-content: flex-end; margin: -.5rem 0 1.25rem; }
+.report-link-button, .report-back-button, .print-button {
+  background: rgba(79, 70, 229, .12);
+  border: 1px solid rgba(129, 140, 248, .3);
+  border-radius: 7px;
+  color: var(--primary-bright);
+  cursor: pointer;
+  font-size: .75rem;
+  padding: .55rem .75rem;
+}
+
+.graph-section { border-top: 1px solid var(--border-subtle); padding: 1.5rem 0 .8rem; }
+.transaction-graph { background: #101725; border: 1px solid var(--border-subtle); border-radius: 6px; margin-top: 1rem; overflow: hidden; width: 100%; }
+.transaction-graph svg { display: block; height: 360px; width: 100%; }
+
+.trace-button:disabled {
+  cursor: wait;
+  opacity: .65;
+  transform: none;
 }
