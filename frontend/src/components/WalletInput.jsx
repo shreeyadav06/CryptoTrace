@@ -4,7 +4,7 @@ const CHAINS = ['Ethereum', 'Bitcoin', 'Polygon', 'Arbitrum']
 
 const SAMPLE_ADDRESS = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
 
-function WalletInput({ onTrace }) {
+function WalletInput({ onTrace, isLoading = false }) {
   const [walletAddress, setWalletAddress] = useState('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
   const [chain, setChain] = useState('Ethereum')
   const [maxHops, setMaxHops] = useState(3)
@@ -105,8 +105,8 @@ function WalletInput({ onTrace }) {
       {error && <p className="form-error" role="alert">{error}</p>}
 
       {/* Submit */}
-      <button className="trace-button" type="submit">
-        <span>Trace wallet</span>
+      <button className="trace-button" type="submit" disabled={isLoading}>
+        <span>{isLoading ? 'Tracing...' : 'Trace wallet'}</span>
         <span className="trace-button-icon">→</span>
       </button>
 

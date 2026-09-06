@@ -3,7 +3,55 @@ import WalletInput from '../components/WalletInput'
 import AttributionCard from '../components/AttributionCard'
 import EvidencePanel from '../components/EvidencePanel'
 import RiskPanel from '../components/RiskPanel'
+import LoadingState from '../components/LoadingState'
 import { mockTraceResponse } from '../data/mockData'
+import TransactionGraph from '../graph/TransactionGraph'
+import { traceWallet } from '../services/api'
+import Report from './Report'
+
+function normalizeGraphData(result) {
+  const graph = result?.graph
+  if (graph?.nodes && graph?.edges) return graph
+  if (result?.nodes && result?.edges) return { nodes: result.nodes, edges: result.edges }
+  if (graph?.overview?.nodes && graph?.overview?.edges) return graph.overview
+  return { nodes: [], edges: [] }
+}
+
+function normalizeTraceResponse(response, request) {
+  const nodes = Array.isArray(response?.nodes) ? response.nodes : []
+  const edges = Array.isArray(response?.edges) ? response.edges : []
+  const evidence = Array.isArray(response?.evidence)
+    ? response.evidence.map((item, index) => (
+      typeof item === 'string'
+        ? { type: `Trace signal ${index + 1}`, description: item }
+        : item
+    ))
+    : []
+
+  return {
+    success: true,
+    attribution: {
+      vasp_name: response?.selected_vasp || 'No Confident Attribution',
+      vasp_type: response?.selected_vasp === 'No Confident Attribution'
+        ? 'Insufficient evidence'
+        : 'Detected VASP',
+      confidence: Number(response?.confidence) || 0,
+    },
+    trace: {
+      hops: Number(response?.hop_distance) || 0,
+      transactions_analyzed: Number(response?.transactions_analyzed) || edges.length,
+      path_found: Boolean(response?.path?.length || nodes.length),
+    },
+    evidence,
+    graph: { nodes, edges },
+    request,
+    source: 'api',
+    case_id: response?.case_id,
+    risk_flags: response?.risk_flags || [],
+    path: Array.isArray(response?.path) ? response.path : [],
+    generated_at: response?.generated_at,
+  }
+}
 
 /* ── Radar SVG (empty state graphic) ───────────────────── */
 function RadarGraphic() {
@@ -40,12 +88,27 @@ function RadarGraphic() {
 function Dashboard() {
   const [traceResult, setTraceResult] = useState(null)
   const [previewing, setPreviewing] = useState(false)
+  const [traceError, setTraceError] = useState('')
+  const [isTracing, setIsTracing] = useState(false)
+  const [isReportOpen, setIsReportOpen] = useState(false)
 
-  function handleTrace(request) {
-    setTraceResult({ ...mockTraceResponse, request })
+  async function handleTrace(request) {
+    setTraceError('')
+    setIsTracing(true)
+
+    try {
+      const response = await traceWallet(request)
+      setTraceResult(normalizeTraceResponse(response, request))
+    } catch (error) {
+      setTraceError(`Trace request failed: ${error.message}`)
+      if (!traceResult) setTraceResult({ ...mockTraceResponse, request, source: 'mock-fallback' })
+    } finally {
+      setIsTracing(false)
+    }
   }
 
   function togglePreview() {
+    setTraceError('')
     if (traceResult) {
       setTraceResult(null)
       setPreviewing(false)
@@ -63,6 +126,9 @@ function Dashboard() {
     }
   }
 
+  if (isReportOpen && traceResult) {
+    return <Report result={traceResult} onBack={() => setIsReportOpen(false)} />
+  }
   return (
     <div className="dashboard">
 
@@ -91,7 +157,7 @@ function Dashboard() {
 
       {/* Workspace */}
       <section className="workspace-grid">
-        <WalletInput onTrace={handleTrace} />
+        <WalletInput onTrace={handleTrace} isLoading={isTracing} />
 
         <section className="result-panel" aria-live="polite">
           <div className="panel-heading">
@@ -99,11 +165,10 @@ function Dashboard() {
               <span className="panel-heading-eyebrow">Attribution Output</span>
               <h2>Trace result</h2>
             </div>
-
             {traceResult ? (
               <span className="success-pill">
                 <span className="success-pill-dot" />
-                Complete
+                {traceResult.source === 'api' ? 'Complete' : 'Demo fallback'}
               </span>
             ) : (
               <button className="preview-btn" type="button" onClick={togglePreview}>
@@ -112,14 +177,28 @@ function Dashboard() {
             )}
           </div>
 
-          {!traceResult ? <EmptyState /> : <TraceResult result={traceResult} onReset={togglePreview} />}
+          {traceError && (
+            <div className="error-toast" role="alert">
+              <span>{traceError}</span>
+              <button type="button" aria-label="Dismiss error" onClick={() => setTraceError('')}>×</button>
+            </div>
+          )}
 
-          <div className="panel-footer">
-            <span>Engine v2.4</span>
-            <span className="panel-footer-right">
-              🛡 Deterministic Graph Consensus
-            </span>
-          </div>
+          {isTracing ? (
+            <LoadingState message="Tracing wallet..." />
+          ) : !traceResult ? (
+            <EmptyState />
+          ) : (
+            <>
+              <TraceResult result={traceResult} onOpenReport={() => setIsReportOpen(true)} />
+              <div className="panel-footer">
+                <span>Engine v2.4</span>
+                <span className="panel-footer-right">
+                  🛡 Deterministic Graph Consensus
+                </span>
+              </div>
+            </>
+          )}
         </section>
       </section>
     </div>
@@ -138,8 +217,11 @@ function EmptyState() {
 }
 
 /* ── Trace Result ───────────────────────────────────────── */
-function TraceResult({ result }) {
+function TraceResult({ result, onOpenReport }) {
   const { request, attribution, trace, graph, evidence, risk_flags, case_id } = result
+  
+  // Normalize graphData for F1's TransactionGraph
+  const graphData = normalizeGraphData(result)
 
   // Resolve node/edge arrays — API puts them at top level, mock may nest inside graph
   const nodeList = Array.isArray(result.nodes) ? result.nodes
@@ -158,7 +240,7 @@ function TraceResult({ result }) {
     return edge?.value != null ? `${edge.value} ETH` : null
   }
 
-  // Node count for metrics — use array length if available, else graph.nodes (count)
+  // Node count for metrics
   const nodeCount = nodeList.length || (typeof graph?.nodes === 'number' ? graph.nodes : 0)
 
   return (
@@ -175,6 +257,11 @@ function TraceResult({ result }) {
 
       {/* Attribution card */}
       <AttributionCard request={request} attribution={attribution} trace={trace} />
+
+      {/* Action buttons */}
+      <div className="result-actions print-exclude">
+        <button className="report-link-button" type="button" onClick={onOpenReport}>View investigation report →</button>
+      </div>
 
       {/* Metrics */}
       <div className="metrics-grid">
@@ -248,9 +335,23 @@ function TraceResult({ result }) {
         )}
       </div>
 
+      {/* Transaction Graph */}
+      <div className="graph-section" style={{ marginTop: '2rem' }}>
+        <div className="section-title" style={{ marginBottom: '1rem' }}>
+          <h3 style={{ color: '#f8fafc', fontSize: '1rem', fontWeight: 600 }}>Transaction Graph</h3>
+          <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{graphData.edges.length} directed edges</span>
+        </div>
+        <TransactionGraph data={graphData} />
+      </div>
+
       {/* Evidence Panel */}
       <EvidencePanel evidence={evidence} />
-
+      
+      {/* JSON Viewer */}
+      <details className="json-viewer" open style={{ marginTop: '2rem' }}>
+        <summary>{result.source === 'api' ? 'View API JSON response' : 'View mock JSON response'} <span aria-hidden="true">+</span></summary>
+        <pre>{JSON.stringify(result, null, 2)}</pre>
+      </details>
     </div>
   )
 }
