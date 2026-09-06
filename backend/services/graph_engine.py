@@ -82,6 +82,67 @@ def get_path_to(trace_result: dict, target_address: str) -> list[str] | None:
     return trace_result["paths"].get(target_address.lower())
 
 
+def extract_subgraph_nodes_and_edges(G: nx.DiGraph, seed_address: str = None, max_hops: int = 3) -> tuple[list[dict], list[dict]]:
+    """
+    Extracts serializable node and edge lists from NetworkX DiGraph for API & D3 rendering.
+    """
+    from services.labels import get_address_label
+
+    nodes = []
+    edges = []
+    
+    # Calculate hop distances if seed_address provided
+    hop_distances = {}
+    if seed_address and seed_address.lower() in G:
+        bfs_res = bfs_trace(G, seed_address.lower(), max_hops=max_hops)
+        for n_item in bfs_res.get("nodes", []):
+            hop_distances[n_item["address"]] = n_item["hop_distance"]
+
+    for node in G.nodes():
+        node_clean = str(node).lower()
+        label_info = get_address_label(node_clean)
+        
+        hop = hop_distances.get(node_clean, 0 if node_clean == (seed_address or "").lower() else 1)
+        
+        if label_info:
+            label_name = label_info.get("name") or label_info.get("label", node_clean[:8])
+            node_type = label_info.get("type", "vasp")
+            risk = "HIGH" if node_type == "high_risk" else "LOW"
+        elif seed_address and node_clean == seed_address.lower():
+            label_name = "Target Wallet"
+            node_type = "target"
+            risk = "LOW"
+        else:
+            label_name = f"Wallet ({node_clean[:6]}...)"
+            node_type = "unknown"
+            risk = "LOW"
+
+        nodes.append({
+            "id": node_clean,
+            "label": label_name,
+            "type": node_type,
+            "hop": hop,
+            "risk": risk
+        })
+
+    for u, v, data in G.edges(data=True):
+        hashes = data.get("hashes", [])
+        tx_hash = hashes[0] if hashes else ""
+        edges.append({
+            "source": str(u).lower(),
+            "target": str(v).lower(),
+            "value": float(data.get("value", 0.0)),
+            "tx_hash": tx_hash,
+            "timestamp": str(data.get("timestamp", ""))
+        })
+
+    return nodes, edges
+
+
+# Alias for backwards/forwards API compatibility
+build_transaction_graph = build_graph
+
+
 # Integration test against B1's REAL pipeline 
 if __name__ == "__main__":
     import sys
