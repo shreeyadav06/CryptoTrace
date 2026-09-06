@@ -1,18 +1,4 @@
-"""
-B4 -- Ground-truth contract tests for CryptoTrace.
 
-These tests are written against the AGREED CONTRACTS (B1's fetch_transactions /
-normalize_tx, B2's build_graph / bfs_trace, B3's /api/trace /api/cases), not
-against whatever the code happens to currently output. If a test here fails,
-the fix is in B1/B2/B3's code, not in this file or in demo_cases.json.
-
-Run standalone (no backend needed) with:
-    pytest tests/test_ground_truth.py -v
-
-Some tests need B1 and B2's services on the path. They are skipped gracefully
-(not failed) if a given person's module isn't importable yet, so B4 can start
-running this before every branch is merged.
-"""
 import json
 import os
 import sys
@@ -26,12 +12,6 @@ DATA_FILE = os.path.join(HERE, "..", "backend", "data", "demo_cases.json")
 def ground_truth():
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
-
-
-# ---------------------------------------------------------------------------
-# Contract-level tests: don't need ANY teammate's code, just the JSON itself.
-# Run these today, before B1/B2/B3 finish.
-# ---------------------------------------------------------------------------
 
 REQUIRED_FIELDS = {
     "title", "target_address", "transactions", "expected_vasp",
@@ -75,12 +55,6 @@ class TestGroundTruthShape:
         assert c["expected_vasp"] == "No Confident Attribution"
         assert c["expected_risk"] == "NONE"
 
-
-# ---------------------------------------------------------------------------
-# Pipeline-level tests: need B1's chain_adapter + normalizer on sys.path.
-# Skip (not fail) if B1's branch isn't merged/available yet.
-# ---------------------------------------------------------------------------
-
 def _try_import_b1():
     candidates = [
         os.path.join(HERE, "..", "backend", "services"),
@@ -123,11 +97,6 @@ class TestB1Pipeline:
         assert norm["to"] == raw_tx["to"].lower()
         assert isinstance(norm["value"], float)
 
-
-# ---------------------------------------------------------------------------
-# Graph-level tests: need B2's graph_engine on sys.path.
-# ---------------------------------------------------------------------------
-
 def _try_import_b2():
     candidates = [os.path.join(HERE, "..", "backend", "services")]
     for c in candidates:
@@ -163,11 +132,6 @@ class TestB2GraphAgainstGroundTruth:
             f"CASE-001 expected hop_distance={c1['expected_hop_distance']}, "
             f"BFS measured {actual_hops}"
         )
-
-
-# ---------------------------------------------------------------------------
-# API-level tests: need B3's Flask app.
-# ---------------------------------------------------------------------------
 
 class TestB3ApiAgainstGroundTruth:
     @pytest.fixture
