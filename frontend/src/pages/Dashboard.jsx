@@ -5,7 +5,7 @@ import AttributionCard from '../components/AttributionCard'
 import EvidencePanel from '../components/EvidencePanel'
 import RiskPanel from '../components/RiskPanel'
 import LoadingState from '../components/LoadingState'
-import { mockTraceResponse } from '../data/mockData'
+import { mockTraceResponses, mockTraceResponseUnknown } from '../data/mockData'
 import TransactionGraph from '../graph/TransactionGraph'
 import { traceWallet } from '../services/api'
 import Report from './Report'
@@ -104,10 +104,12 @@ function Dashboard() {
     try {
       const response = await traceWallet(request)
       setTraceResult(normalizeTraceResponse(response, request))
-    } catch (error) {
+       } catch (error) {
       // Local backend offline fallback for seamless demonstration
       setTraceNotice('Local engine offline — demonstrated using verified case dataset')
-      setTraceResult({ ...mockTraceResponse, request, source: 'demo-fallback' })
+      const key = (request?.wallet_address || '').trim().toLowerCase()
+      const matched = mockTraceResponses[key] || mockTraceResponseUnknown
+      setTraceResult({ ...matched, request, source: 'demo-fallback' })
     } finally {
       setIsTracing(false)
     }
@@ -121,7 +123,7 @@ function Dashboard() {
     } else {
       setPreviewing(true)
       setTraceResult({
-        ...mockTraceResponse,
+        ...mockTraceResponses['0xc3bfbab68c680a962fb9c3193b6fd2736b7db275'],
         request: {
           wallet_address: '0xc3bfbab68c680a962fb9c3193b6fd2736b7db275',
           chain: 'Ethereum',

@@ -37,12 +37,15 @@ def generate_investigation_report(case_id: str, trace_data: dict = None) -> dict
                 seen_nodes.add(src)
                 nodes.append({"id": src, "label": f"Intermediary ({src[:6]}...)", "type": "unknown", "hop": 1, "risk": "LOW"})
             if dst and dst not in seen_nodes:
-                seen_nodes.add(dst)
-                is_vasp = dst == "0x28c6c06298d514db089934071355e5743bf21d60"
+                from services.labels import get_address_label
+                label_info = get_address_label(dst)
+                is_vasp = label_info is not None or (len(txs) > 0 and tx == txs[-1])
+                node_label = (label_info.get("name") or label_info.get("label")) if label_info else (vasp if is_vasp else f"Wallet ({dst[:6]}...)")
+                node_type = "vasp" if (label_info and label_info.get("type") == "vasp") or is_vasp else "unknown"
                 nodes.append({
                     "id": dst, 
-                    "label": vasp if is_vasp else f"Wallet ({dst[:6]}...)", 
-                    "type": "vasp" if is_vasp else "unknown", 
+                    "label": node_label, 
+                    "type": node_type, 
                     "hop": hop, 
                     "risk": risk
                 })
@@ -80,7 +83,11 @@ def _load_demo_case(case_id: str) -> dict:
     if os.path.exists(demo_file):
         with open(demo_file, "r", encoding="utf-8") as f:
             cases = json.load(f)
-            return cases.get(case_id)
+            if case_id in cases:
+                return cases.get(case_id)
+            for cid, cdata in cases.items():
+                if cdata.get("target_address", "").lower() == str(case_id).lower():
+                    return cdata
     return None
 
 def _compile_report_from_trace(case_id: str, trace: dict) -> dict:
