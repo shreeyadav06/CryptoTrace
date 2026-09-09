@@ -60,5 +60,35 @@
     "expected_risk": "NONE",
     "ground_truth_source": "N/A by design -- ground truth for this case IS the absence of any transaction/label data.",
     "ground_truth_note": "Address is synthetic with intentionally zero history, which is the correct fixture for this case type (an empty tx list is not a bug here, it is the test). Do NOT replace with a real address later: any real address risks eventually acquiring a tag or transaction, which would break this specific edge case."
+  },
+  "CASE-TRON-001": {
+    "title": "Tron TRC-20 Cyber Fraud Laundering Case",
+    "description": "Suspect cyber fraud proceeds laundered via TRC-20 USDT through an intermediary peeling wallet into Binance deposit.",
+    "target_address": "TYG6n3s2K9mXkRt8UvWz3yBc1DeFa45678",
+    "chain": "tron",
+    "transactions": [
+      {
+        "hash": "0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b",
+        "from": "TYG6n3s2K9mXkRt8UvWz3yBc1DeFa45678",
+        "to": "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuW97",
+        "value": 50000.0,
+        "timestamp": "2026-09-08T10:00:00",
+        "block": 64201940
+      },
+      {
+        "hash": "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+        "from": "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuW97",
+        "to": "TMuA6YqfCeX8EhbfYEg5y7S4DqzSJ3WjPP",
+        "value": 49950.0,
+        "timestamp": "2026-09-08T10:07:00",
+        "block": 64201970
+      }
+    ],
+    "expected_vasp": "Binance",
+    "expected_confidence_min": 80,
+    "expected_hop_distance": 2,
+    "expected_risk": "LOW",
+    "expected_typology": "Peeling Chain",
+    "ground_truth_note": "DEMO MODE fixture per plan Sec.5.1 \u2014 Tron TRC-20 peeling chain into a labeled Binance TRC-20 hot wallet, 7-minute inter-hop interval (Rapid Pass-Through)."
   }
 }
