@@ -4,6 +4,10 @@ import urllib.request
 import urllib.error
 import time
 
+def is_tron_address(address: str) -> bool:
+    addr = str(address or "").strip()
+    return addr.startswith("T") and len(addr) == 34
+
 def fetch_transactions(address: str, mode: str) -> list[dict]:
     """
     mode="demo": load matching case from demo_cases.json, zero network calls.
@@ -12,16 +16,17 @@ def fetch_transactions(address: str, mode: str) -> list[dict]:
                  an exception from a live-mode failure.
     Returns list of RAW tx dicts (pre-normalization), ready to pass to normalize_tx().
     """
-    address = address.lower()
+    is_tron = is_tron_address(address)
+    address_lower = address.lower()
     
-    if mode == "demo":
-        return _fetch_demo_transactions(address)
+    if mode == "demo" or is_tron:
+        return _fetch_demo_transactions(address_lower)
     elif mode == "live":
         try:
-            return _fetch_live_transactions(address)
+            return _fetch_live_transactions(address_lower)
         except Exception:
             # Fallback to local cache immediately to prevent unhandled exceptions.
-            return _fetch_demo_transactions(address)
+            return _fetch_demo_transactions(address_lower)
     
     return []
 
