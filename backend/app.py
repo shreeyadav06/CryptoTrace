@@ -5,6 +5,7 @@ from routes.health import health_bp
 from routes.cases import cases_bp
 from routes.trace import trace_bp
 from routes.report import report_bp
+from routes.sahyog import sahyog_bp
 
 def create_app():
     app = Flask(__name__)
@@ -15,6 +16,7 @@ def create_app():
     app.register_blueprint(cases_bp)
     app.register_blueprint(trace_bp)
     app.register_blueprint(report_bp)
+    app.register_blueprint(sahyog_bp)
 
     @app.route("/", methods=["GET"])
     def root():
@@ -22,7 +24,7 @@ def create_app():
             "message": "CryptoTrace Backend API Service is running.",
             "frontend_url": "http://localhost:5173",
             "health_check": "http://localhost:5000/health",
-            "endpoints": ["/health", "/api/trace", "/api/cases", "/api/report/<case_id>"]
+            "endpoints": ["/health", "/api/trace", "/api/cases", "/api/report/<case_id>", "/api/sahyog/case-ingest"]
         }, 200
 
     return app

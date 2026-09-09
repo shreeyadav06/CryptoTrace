@@ -23,7 +23,7 @@ from backend.app import create_app
 
 FROZEN_TRACE_KEYS = {
     "case_id", "chain", "input_address", "selected_vasp", "confidence",
-    "hop_distance", "path", "evidence", "risk_flags", "nodes", "edges"
+    "hop_distance", "path", "evidence", "risk_flags", "nodes", "edges", "typologies"
 }
 NODE_REQUIRED_KEYS = {"id", "label", "type", "hop", "risk"}
 EDGE_REQUIRED_KEYS = {"source", "target", "tx_hash", "value", "timestamp"}
