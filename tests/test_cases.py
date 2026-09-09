@@ -47,7 +47,7 @@ class TestDay4GroundTruthAcceptance:
     """Step 7.2: Verify that all 3 ground truth cases return expected VASP, confidence, and risk flags."""
 
     def test_demo_cases_file_structure(self, ground_truth):
-        assert set(ground_truth.keys()) == {"CASE-001", "CASE-002", "CASE-003"}
+        assert {"CASE-001", "CASE-002", "CASE-003", "CASE-TRON-001"}.issubset(ground_truth.keys())
         for case_id, case in ground_truth.items():
             assert "target_address" in case
             assert "expected_vasp" in case
