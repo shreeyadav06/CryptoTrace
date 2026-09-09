@@ -12,7 +12,9 @@ export default function AttributionCard({ request, attribution, trace }) {
         <div>
           <h4 className="attribution-name">
             {attribution.vasp_name}
-            <span className="vasp-badge">Verified VASP</span>
+            {attribution.vasp_name !== 'No Confident Attribution' && (
+              <span className="vasp-badge">Verified VASP</span>
+            )}
             <span className="vasp-badge" style={{ marginLeft: '0.5rem', background: 'rgba(34, 211, 238, 0.1)', color: 'var(--accent-cyan)', borderColor: 'rgba(34, 211, 238, 0.2)' }}>
               {trace.hops} Hops
             </span>
