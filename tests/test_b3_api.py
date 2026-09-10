@@ -219,3 +219,74 @@ def test_sahyog_case_ingest_tron(client):
     assert data["notice_url"] == "/api/sahyog/disclosure-notice/CASE-TRON-001"
 
 
+# --- Day 2 B3 Section 91 Notice & CORS Contract Tests (Tasks 3.3 & 3.4) ---
+
+def test_sahyog_disclosure_notice_tron_contract(client):
+    """Test GET /api/sahyog/disclosure-notice/CASE-TRON-001 satisfies full contract."""
+    response = client.get("/api/sahyog/disclosure-notice/CASE-TRON-001")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get("case_id") == "CASE-TRON-001"
+    assert data.get("status") == "READY_TO_SERVE"
+    assert data.get("legal_mandate") == "Section 91/102 CrPC & Sec 94/106 BNSS"
+    assert "notice_text" in data
+    text = data["notice_text"]
+    assert "SECTION 91" in text.upper()
+    assert "SECTION 102" in text.upper()
+    assert "BNSS, 2023" in text.upper()
+    assert "TYG6N3S2K9MXKRT8UVWZ3YBC1DEFA45678" in text.upper()
+    assert "BINANCE" in text.upper()
+
+
+def test_sahyog_disclosure_notice_ethereum_contract(client):
+    """Test GET /api/sahyog/disclosure-notice/CASE-001 satisfies Ethereum case contract."""
+    response = client.get("/api/sahyog/disclosure-notice/CASE-001")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get("case_id") == "CASE-001"
+    assert data.get("status") == "READY_TO_SERVE"
+    assert "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a".upper() in data["notice_text"].upper()
+
+
+def test_sahyog_disclosure_notice_custom_id_fallback(client):
+    """Test GET /api/sahyog/disclosure-notice with uncataloged ID falls back gracefully."""
+    response = client.get("/api/sahyog/disclosure-notice/SAHYOG-CUSTOM-9941")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get("case_id") == "SAHYOG-CUSTOM-9941"
+    assert data.get("status") == "READY_TO_SERVE"
+    assert "SAHYOG-CUSTOM-9941" in data["notice_text"]
+
+
+def test_sahyog_disclosure_notice_invalid_id_returns_400(client):
+    """Test GET /api/sahyog/disclosure-notice with invalid characters returns 400."""
+    response = client.get("/api/sahyog/disclosure-notice/CASE!@#$%^")
+    assert response.status_code == 400
+    data = response.get_json()
+    assert "error" in data
+
+
+def test_sahyog_cors_headers(client):
+    """Verify CORS headers are returned for Sahyog endpoints."""
+    # Test GET on disclosure notice
+    response = client.get(
+        "/api/sahyog/disclosure-notice/CASE-TRON-001",
+        headers={"Origin": "http://localhost:5173"}
+    )
+    assert response.status_code == 200
+    assert response.headers.get("Access-Control-Allow-Origin") in ("*", "http://localhost:5173")
+
+    # Test OPTIONS preflight on case-ingest
+    options_res = client.options(
+        "/api/sahyog/case-ingest",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type"
+        }
+    )
+    assert options_res.status_code == 200
+    assert options_res.headers.get("Access-Control-Allow-Origin") in ("*", "http://localhost:5173")
+
+
+

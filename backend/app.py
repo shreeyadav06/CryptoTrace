@@ -23,8 +23,14 @@ def create_app():
         return {
             "message": "CryptoTrace Backend API Service is running.",
             "frontend_url": "http://localhost:5173",
-            "health_check": "http://localhost:5000/health",
-            "endpoints": ["/health", "/api/trace", "/api/cases", "/api/report/<case_id>", "/api/sahyog/case-ingest"]
+            "endpoints": [
+                "/health",
+                "/api/trace",
+                "/api/cases",
+                "/api/report/<case_id>",
+                "/api/sahyog/case-ingest",
+                "/api/sahyog/disclosure-notice/<case_id>"
+            ]
         }, 200
 
     return app
