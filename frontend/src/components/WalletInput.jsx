@@ -1,19 +1,51 @@
 import { useState } from 'react'
 
-const CHAINS = ['Ethereum', 'Bitcoin', 'Polygon', 'Arbitrum']
+const CHAINS = ['Ethereum', 'Tron (TRC-20)', 'Bitcoin', 'Polygon', 'Arbitrum']
 
-const SAMPLE_ADDRESS = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
+const PRESET_CASES = [
+  {
+    id: 'CASE-001',
+    label: 'CASE-001 (Binance ETH)',
+    address: '0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a',
+    chain: 'Ethereum',
+  },
+  {
+    id: 'CASE-002',
+    label: 'CASE-002 (OFAC Lazarus)',
+    address: '0xc3bfbab68c680a962fb9c3193b6fd2736b7db275',
+    chain: 'Ethereum',
+  },
+  {
+    id: 'CASE-003',
+    label: 'CASE-003 (Unassigned)',
+    address: '0xf27eced4cde3b613ddbe5ea119969efe60151b20',
+    chain: 'Ethereum',
+  },
+  {
+    id: 'CASE-TRON-001',
+    label: 'CASE-TRON-001 (Tron TRC-20 Laundering)',
+    address: 'TYG6n3s2K9mXkRt8UvWz3yBc1DeFa45678',
+    chain: 'Tron (TRC-20)',
+  },
+]
 
 function WalletInput({ onTrace, isLoading = false }) {
-  const [walletAddress, setWalletAddress] = useState('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
+  const [walletAddress, setWalletAddress] = useState('0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a')
   const [chain, setChain] = useState('Ethereum')
   const [maxHops, setMaxHops] = useState(3)
   const [mode, setMode] = useState('standard')
   const [error, setError] = useState('')
+  const [selectedCase, setSelectedCase] = useState('CASE-001')
 
-  function fillSample() {
-    setWalletAddress(SAMPLE_ADDRESS)
-    setError('')
+  function handleSelectCase(e) {
+    const caseId = e.target.value
+    setSelectedCase(caseId)
+    const found = PRESET_CASES.find((c) => c.id === caseId)
+    if (found) {
+      setWalletAddress(found.address)
+      setChain(found.chain)
+      setError('')
+    }
   }
 
   function handleSubmit(e) {
@@ -26,7 +58,12 @@ function WalletInput({ onTrace, isLoading = false }) {
     }
 
     setError('')
-    onTrace({ wallet_address: addr, chain, max_hops: Number(maxHops), mode })
+    onTrace({ 
+      wallet_address: addr, 
+      chain: chain.includes('Tron') ? 'tron' : chain.toLowerCase(), 
+      max_hops: Number(maxHops), 
+      mode 
+    })
   }
 
   return (
@@ -41,19 +78,40 @@ function WalletInput({ onTrace, isLoading = false }) {
         <span className="form-step">01 / 01</span>
       </div>
 
+      {/* Ground Truth Presets */}
+      <div className="field-group" style={{ marginBottom: '1rem' }}>
+        <div className="field-label-row">
+          <label className="field-label" htmlFor="preset-case-select">Pre-Loaded Forensic Case</label>
+          <span style={{ fontSize: '0.72rem', color: '#818cf8', fontWeight: 600 }}>Ground Truth</span>
+        </div>
+        <select
+          className="field-select"
+          id="preset-case-select"
+          value={selectedCase}
+          onChange={handleSelectCase}
+        >
+          {PRESET_CASES.map((c) => (
+            <option key={c.id} value={c.id}>{c.label}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Wallet Address */}
       <div className="field-group">
         <div className="field-label-row">
           <label className="field-label" htmlFor="wallet-address">Wallet address</label>
-          <button className="sample-link" type="button" onClick={fillSample}>Sample</button>
         </div>
         <input
           className="field-input"
           id="wallet-address"
           type="text"
           value={walletAddress}
-          onChange={(e) => { setWalletAddress(e.target.value); setError('') }}
-          placeholder="Enter wallet address..."
+          onChange={(e) => { 
+            setWalletAddress(e.target.value) 
+            setSelectedCase('')
+            setError('') 
+          }}
+          placeholder="Enter 0x... (EVM) or T... (Tron) wallet address"
           spellCheck={false}
           autoComplete="off"
         />

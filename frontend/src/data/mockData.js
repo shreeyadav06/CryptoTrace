@@ -118,6 +118,56 @@ export const mockTraceResponses = {
     edges: [],
     graph: { nodes: 1, edges: 0 },
   },
+
+  'tyg6n3s2k9mxkrt8uvwz3ybc1defa45678': {
+    success: true,
+    case_id: 'CASE-TRON-001',
+    chain: 'tron',
+    attribution: {
+      vasp_name: 'Binance',
+      vasp_type: 'Detected VASP (TRC-20)',
+      confidence: 80,
+    },
+    trace: {
+      hops: 2,
+      transactions_analyzed: 2,
+      path_found: true,
+    },
+    evidence: [
+      {
+        type: 'Trace signal 1',
+        description: '2-hop relationship to verified Binance address (vasp).',
+      },
+      {
+        type: 'Peeling Chain Detected',
+        description: 'Peeling chain transfer pattern identified across transaction hops.',
+      },
+    ],
+    typologies: ['Peeling Chain', 'Rapid Pass-Through'],
+    risk_flags: [],
+    nodes: [
+      { id: 'TYG6n3s2K9mXkRt8UvWz3yBc1DeFa45678', label: 'Target Wallet', type: 'target', hop: 0, risk: 'NONE' },
+      { id: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHXU97', label: 'Intermediary (Peeling Hop)', type: 'intermediary', hop: 1, risk: 'NONE' },
+      { id: 'TMuA6YqfCeX8ehbfYEG5y7S4DQzsJ3Wjpp', label: 'Binance: TRC20 Hot Wallet', type: 'vasp', hop: 2, risk: 'NONE' },
+    ],
+    edges: [
+      {
+        source: 'TYG6n3s2K9mXkRt8UvWz3yBc1DeFa45678',
+        target: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHXU97',
+        tx_hash: '0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
+        value: 50000.0,
+        timestamp: '2026-09-08T10:00:00',
+      },
+      {
+        source: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHXU97',
+        target: 'TMuA6YqfCeX8ehbfYEG5y7S4DQzsJ3Wjpp',
+        tx_hash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
+        value: 49950.0,
+        timestamp: '2026-09-08T10:07:00',
+      },
+    ],
+    graph: { nodes: 3, edges: 2 },
+  },
 }
 
 // Fallback-of-last-resort if the traced address doesn't match ANY known case
