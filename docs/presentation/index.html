@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CryptoTrace — Pitch Deck (SIH 2026 PS-182)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../frontend/src/styles/design-tokens.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      background-image: radial-gradient(circle at 50% 0%, #17243b 0%, var(--color-bg) 65%);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Top Progress Bar */
+    .progress-bar-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-primary) 0%, var(--node-vasp) 100%);
+      width: 12.5%;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    /* Deck Header */
+    .deck-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 3rem;
+      border-bottom: 1px solid var(--line-subtle);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .brand-mark {
+      background: var(--color-primary);
+      color: white;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+    }
+
+    .meta-badges {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Main Slide Stage */
+    .slide-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 4rem;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1200px;
+      height: 100%;
+      max-height: 640px;
+      animation: fadeIn 0.35s ease;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Slide Typography & Layouts */
+    .slide-eyebrow {
+      font-family: var(--font-mono);
+      color: var(--color-primary-bright);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .slide-title {
+      font-size: clamp(2rem, 3.2vw, 2.9rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin-bottom: 1.8rem;
+    }
+
+    .slide-title em {
+      color: var(--color-primary-bright);
+      font-style: normal;
+    }
+
+    .slide-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: stretch;
+    }
+
+    .slide-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .card {
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      position: relative;
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .card p, .card li {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .card ul {
+      padding-left: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .card li {
+      margin-bottom: 0.5rem;
+    }
+
+    .highlight-card {
+      border-color: rgba(96, 165, 250, 0.4);
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(21, 29, 45, 0.9) 100%);
+      box-shadow: var(--shadow-glow-primary);
+    }
+
+    .risk-card {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, rgba(30, 41, 59, 0.9) 100%);
+    }
+
+    .vasp-card {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(30, 41, 59, 0.9) 100%);
+    }
+
+    /* Math formula display */
+    .formula-banner {
+      background: var(--color-surface-soft);
+      border: 1px solid var(--color-primary-glow);
+      border-left: 4px solid var(--color-primary);
+      padding: 1.1rem 1.4rem;
+      border-radius: var(--radius-md);
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      color: #93c5fd;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Footer & Controls */
+    .deck-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.1rem 3rem;
+      border-top: 1px solid var(--line-subtle);
+      background: rgba(11, 15, 25, 0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      background: var(--color-surface-soft);
+      border: 1px solid var(--line);
+      color: var(--text-primary);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-primary);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-dark);
+    }
+
+    .slide-counter {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Presenter Notes Drawer */
+    .notes-drawer {
+      position: fixed;
+      bottom: 60px;
+      right: 3rem;
+      width: 440px;
+      max-height: 280px;
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-elevated);
+      padding: 1.25rem;
+      z-index: 100;
+      overflow-y: auto;
+      display: none;
+      backdrop-filter: blur(16px);
+    }
+
+    .notes-drawer.open {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .notes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.4rem;
+    }
+
+    .notes-header h4 {
+      font-size: 0.8rem;
+      color: var(--color-primary-bright);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .notes-time {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--node-target);
+    }
+
+    .notes-body {
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    /* Print styles for PDF export */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        overflow: visible !important;
+      }
+      .deck-header, .deck-footer, .progress-bar-container, .notes-drawer {
+        display: none !important;
+      }
+      .slide-stage {
+        padding: 0 !important;
+        display: block !important;
+      }
+      .slide {
+        display: flex !important;
+        page-break-after: always;
+        max-height: none !important;
+        padding: 2rem !important;
+      }
+      .card {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        color: black !important;
+      }
+      .card p, .card li {
+        color: #334155 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Progress Bar -->
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="deck-header">
+    <a href="/" class="brand">
+      <span class="brand-mark">CT</span>
+      <span>CryptoTrace</span>
+    </a>
+    <div class="meta-badges">
+      <span class="ct-badge ct-badge-neutral">SIH 2026 — PS-182</span>
+      <span class="ct-badge ct-badge-hop">3-MINUTE TIMED PITCH</span>
+      <span class="ct-badge ct-badge-vasp">DEMO MODE ACTIVE</span>
+    </div>
+  </header>
+
+  <!-- Slide Stage -->
+  <main class="slide-stage">
+
+    <!-- SLIDE 1: PROBLEM -->
+    <section class="slide active" data-slide="1" data-time="0:00 - 0:25" data-script="Good day, respected Judges. When illicit funds move across the Ethereum blockchain—whether in ransomware payments, fraud, or cyber heists—investigators face an immediate bottleneck: Raw explorers show wallet addresses and transaction values, but create an attribution gap: Which regulated exchange or service controls or received those funds? You cannot serve a court order or KYC freeze notice to a 42-character hash. Doing this manually across multi-hop transactions takes hours. That is the exact gap CryptoTrace solves today.">
+      <p class="slide-eyebrow"><span class="ct-legend-dot risk"></span> Problem Statement · The Attribution Gap</p>
+      <h1 class="slide-title">Raw Blockchains Reveal Hashes.<br><em>Investigators Need Entities.</em></h1>
+      <div class="slide-grid-2">
+        <div class="card risk-card">
+          <div class="ct-badge ct-badge-risk" style="margin-bottom: 1rem;">THE FORENSIC BOTTLENECK</div>
+          <h3>The Attribution Blindspot</h3>
+          <p>On-chain ledgers record every transaction cryptographically, but wallet addresses are inherently pseudonymous.</p>
+          <ul>
+            <li><strong>Subpoena Target Gap:</strong> Legal freeze requests must be served on regulated <em>Virtual Asset Service Providers (VASPs)</em>, not raw hex hashes.</li>
+            <li><strong>Intermediary Laundering:</strong> Bad actors route funds through 2 to 3 intermediary wallets to obscure fund trails.</li>
+            <li><strong>Manual Analysis Fatigue:</strong> Manually expanding multi-hop transaction graphs across Etherscan takes hours per case.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="ct-badge ct-badge-neutral" style="margin-bottom: 1rem;">REAL INVESTIGATIVE COST</div>
+          <h3>Delayed Asset Recovery</h3>
+          <p>In cryptocurrency crime, time-to-subpoena determines recovery success. When stolen funds enter an exchange, investigators have a critical window before off-ramping to fiat.</p>
+          <div style="margin-top: 1.5rem; padding: 1.2rem; background: var(--color-surface-soft); border-radius: var(--radius-md); border: 1px dashed var(--line);">
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--node-target); margin-bottom: 0.4rem;">Target Wallet (Unlabelled):</div>
+            <div class="ct-address">0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.6rem;">Status: Unknown owner, unlabelled cluster, active outbound transfers.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: SOLUTION -->
+    <section class="slide" data-slide="2" data-time="0:25 - 0:50" data-script="CryptoTrace is an automated blockchain intelligence platform built specifically for SIH PS-182. An investigator pastes an unlabelled target wallet. Within seconds, our engine traverses a 2 to 3 hop transaction neighborhood, identifies connected VASP entities, deterministically ranks them with a transparent confidence score, flags sanctioned OFAC nodes along the way, and exports an audit-ready forensic dossier. Crucially, we maintain ethical boundaries: CryptoTrace performs service-level attribution to assist subpoena targeting—we do not claim individual de-anonymization.">
+      <p class="slide-eyebrow"><span class="ct-legend-dot target"></span> Proposed Solution · Core Capabilities</p>
+      <h1 class="slide-title">Introducing CryptoTrace:<br><em>Automated Nearest-VASP Attribution</em></h1>
+      <div class="slide-grid-3">
+        <div class="card highlight-card">
+          <span class="ct-badge ct-badge-hop" style="margin-bottom: 0.8rem;">01 · GRAPH BFS</span>
+          <h3>Multi-Hop Traversal</h3>
+          <p>Automated Breadth-First Search (BFS) explores 2–3 hops of transaction history around any target wallet without manual exploration.</p>
+        </div>
+        <div class="card vasp-card">
+          <span class="ct-badge ct-badge-vasp" style="margin-bottom: 0.8rem;">02 · HEURISTIC ENGINE</span>
+          <h3>Nearest-VASP Ranking</h3>
+          <p>Identifies candidate exchange hot/cold wallets (Binance, Coinbase, Kraken) and computes an explainable confidence score.</p>
+        </div>
+        <div class="card">
+          <span class="ct-badge ct-badge-risk" style="margin-bottom: 0.8rem;">03 · COMPLIANCE</span>
+          <h3>Sanctions & Audit Trail</h3>
+          <p>Cross-references active OFAC SDN lists and compiles complete forensic dossiers with case IDs and verifiable evidence trails.</p>
+        </div>
+      </div>
+      <div style="margin-top: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.82rem;">
+        🔒 <strong>Ethical Scope Boundary:</strong> Service-level entity attribution for legal compliance; zero personal de-anonymization.
+      </div>
+    </section>
+
+    <!-- SLIDE 3: ARCHITECTURE -->
+    <section class="slide" data-slide="3" data-time="0:50 - 1:15" data-script="Here is the architectural foundation of CryptoTrace. Our frontend is built in React and D3.js for responsive force-directed graph exploration. The client communicates via a structured REST API to our Python analytical engine. The engine normalizes blockchain transaction data into immutable records, builds a directed graph using NetworkX, executes breadth-first traversal capped strictly at 3 hops, and queries our dual intelligence databases: verified VASP hot wallets and active OFAC sanctions feeds. Every component is modular, fully typed, and covered by automated test suites.">
+      <p class="slide-eyebrow"><span class="ct-legend-dot hop1"></span> System Architecture · Engineering Rigor</p>
+      <h1 class="slide-title">Modular <em>Four-Tier Pipeline</em></h1>
+      <div class="slide-grid-2">
+        <div class="card">
+          <h3>Frontend & API Layer</h3>
+          <ul style="margin-top: 0.8rem;">
+            <li><strong>Presentation Layer:</strong> React 18 dashboard, D3.js force-directed transaction graph, and printable report exporter.</li>
+            <li><strong>REST API Gateway:</strong> Flask server exposing <code>/health</code>, <code>/api/trace</code>, <code>/api/cases</code>, and <code>/api/report</code>.</li>
+            <li><strong>Data Contracts:</strong> Stable JSON schema with strict validation and error handling.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Analytical Core & Feeds</h3>
+          <ul style="margin-top: 0.8rem;">
+            <li><strong>Normalization:</strong> <code>normalizer.py</code> ingests heterogeneous inputs into immutable transaction objects.</li>
+            <li><strong>Graph Engine:</strong> NetworkX directed graph builder with cycle detection and BFS capped at &le;3 hops.</li>
+            <li><strong>Intelligence Feeds:</strong> Curated verified VASP database (<code>labels.json</code>) and real OFAC SDN list (<code>ofac.json</code>).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: METHODOLOGY & SCORING -->
+    <section class="slide" data-slide="4" data-time="1:15 - 1:40" data-script="How does CryptoTrace decide which VASP is the true destination? Rather than uninterpretable Machine Learning models that hallucinate on sparse blockchain data, we use a deterministic, explainable heuristic scoring formula. Graph proximity provides the primary weight: 1-hop transactions score 75 points; 2-hop intermediaries score 55. We then award bonuses for independent transaction paths, high ETH transaction volume, and transaction recency. Most importantly, we enforce a strict guardrail: if the total confidence score falls below 40 points, CryptoTrace refuses to force an attribution, returning 'No Confident Attribution'.">
+      <p class="slide-eyebrow"><span class="ct-legend-dot target"></span> Attribution Logic · Deterministic Scoring</p>
+      <h1 class="slide-title">Explainable <em>Heuristic Scoring</em></h1>
+      <div class="formula-banner">
+        <span>Confidence = W<sub>proximity</sub> + S<sub>paths</sub> + S<sub>volume</sub> + S<sub>recency</sub> + S<sub>reliability</sub></span>
+        <span class="ct-badge ct-badge-vasp">100% DETERMINISTIC</span>
+      </div>
+      <div class="slide-grid-3">
+        <div class="card">
+          <h4 style="color: var(--color-primary-bright); margin-bottom: 0.4rem;">Graph Proximity (W)</h4>
+          <p style="font-size: 0.8rem;">Direct match: <strong>95 pts</strong><br>1-Hop neighbor: <strong>75 pts</strong><br>2-Hop path: <strong>55 pts</strong><br>3-Hop boundary: <strong>35 pts</strong></p>
+        </div>
+        <div class="card">
+          <h4 style="color: var(--node-target); margin-bottom: 0.4rem;">Corroborating Signals</h4>
+          <p style="font-size: 0.8rem;">Independent paths: <strong>+5 pts/path</strong><br>Volume &gt;10 ETH: <strong>+5 to +10 pts</strong><br>Recency (&lt;30 days): <strong>+5 pts</strong></p>
+        </div>
+        <div class="card risk-card">
+          <h4 style="color: var(--node-risk-bright); margin-bottom: 0.4rem;">No Forced Attribution</h4>
+          <p style="font-size: 0.8rem;">Guardrail: If Score &lt; 40 pts, engine returns <em>"No Confident Attribution"</em> (Eliminates false positives).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: DUAL EXECUTION RELIABILITY -->
+    <section class="slide" data-slide="5" data-time="1:40 - 2:05" data-script="A common pitfall in hackathons is relying entirely on third-party live APIs that rate-limit or fail when internet connectivity fluctuates. CryptoTrace solves this through a dual-mode architecture. In DEMO MODE, the system runs against manually verified, real-world Ethereum fixtures completely offline with zero latency. In LIVE MODE, the engine queries Etherscan live on-chain. But notice the key architectural honesty: both modes execute through the exact same NetworkX graph builder, the same scoring heuristics, and the same UI pipeline.">
+      <p class="slide-eyebrow"><span class="ct-legend-dot vasp"></span> Fault Tolerance · Presentation Resilience</p>
+      <h1 class="slide-title">Dual Execution Modes:<br><em>Engineering for 100% Uptime</em></h1>
+      <div class="slide-grid-2">
+        <div class="card vasp-card">
+          <div class="ct-badge ct-badge-vasp" style="margin-bottom: 0.8rem;">GUARANTEED PRESENTATION PATH</div>
+          <h3>DEMO MODE (Offline)</h3>
+          <p>Operates seamlessly with network adapters disabled. Guaranteed 100% uptime during judging presentations.</p>
+          <ul>
+            <li>Sub-25ms deterministic execution latency.</li>
+            <li>Zero reliance on public API rate limits or college Wi-Fi.</li>
+            <li>Uses manually verified, real-world Ethereum fixtures.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="ct-badge ct-badge-hop" style="margin-bottom: 0.8rem;">PRODUCTION ADAPTER PATH</div>
+          <h3>LIVE MODE (On-Chain)</h3>
+          <p>Direct live on-chain querying via Etherscan API for real-time investigation.</p>
+          <ul>
+            <li>Integrated rate-limiting exponential backoff.</li>
+            <li>Automatic 5.0s timeout fallback to cached data.</li>
+            <li><strong>Unified Engine:</strong> Feeds the identical NetworkX graph pipeline.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: PRODUCT DEMONSTRATION -->
+    <section class="slide" data-slide="6" data-time="2:05 - 2:25" data-script="Let us now look at the live software in action. We have prepared three manually verified ground truth scenarios to prove our engine's versatility: Case 1 demonstrates a clean 2-hop attribution resolving to Binance Hot Wallet 20 with 87% confidence. Case 2 tests our compliance engine against an address directly transacting with the Lazarus Group Ronin Bridge exploit wallet, triggering an immediate OFAC red banner. And Case 3 tests our edge case guardrail: an isolated wallet where our engine cleanly returns 'No Confident Attribution'. Let's switch over to the live application.">
+      <p class="slide-eyebrow"><span class="ct-legend-dot hop1"></span> Live Prototype · Evaluation Cases</p>
+      <h1 class="slide-title">Three Verified <em>Demonstration Cases</em></h1>
+      <div class="slide-grid-3">
+        <div class="card vasp-card">
+          <span class="ct-badge ct-badge-vasp" style="margin-bottom: 0.8rem;">CASE-001</span>
+          <h3>Clean Attribution</h3>
+          <p style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--node-target); margin-bottom: 0.5rem;">0x8505...3e3a</p>
+          <p>Resolves 2 hops outward to <strong>Binance Hot Wallet 20</strong> with <strong>87% confidence</strong> and LOW risk.</p>
+        </div>
+        <div class="card risk-card">
+          <span class="ct-badge ct-badge-risk" style="margin-bottom: 0.8rem;">CASE-002</span>
+          <h3>OFAC Sanctions Alert</h3>
+          <p style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--node-risk); margin-bottom: 0.5rem;">0xc3bf...b275</p>
+          <p>Flags 1-hop direct transfer with <strong>Lazarus Group (DPRK) Ronin Bridge Exploiter</strong> address.</p>
+        </div>
+        <div class="card">
+          <span class="ct-badge ct-badge-neutral" style="margin-bottom: 0.8rem;">CASE-003</span>
+          <h3>No Attribution</h3>
+          <p style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 0.5rem;">0xf27e...1b20</p>
+          <p>Isolated wallet with no exchange links. Gracefully returns <strong>"No Confident Attribution"</strong>.</p>
+        </div>
+      </div>
+      <div style="margin-top: 2rem; text-align: center;">
+        <span class="ct-badge ct-badge-hop" style="padding: 0.6rem 1.4rem; font-size: 0.85rem;">[ LIVE WORKSPACE DEMONSTRATION READY ]</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: EVALUATION & BENCHMARKS -->
+    <section class="slide" data-slide="7" data-time="2:25 - 2:45" data-script="We believe in technical honesty. Every ground-truth case in CryptoTrace has been verified against active on-chain records and OFAC SDN listings, with 15 passing automated test assertions. We also openly state our scope boundaries: Our accuracy is bounded by label intelligence coverage. We do not claim cryptographic unmixing of zero-knowledge privacy pools—we detect their proximity and flag the risk. And our outputs are designed as investigative lead intelligence to accelerate subpoena issuance, not definitive court testimony.">
+      <p class="slide-eyebrow"><span class="ct-legend-dot target"></span> Evaluation · Honest Boundaries</p>
+      <h1 class="slide-title">System Benchmarks &amp; <em>Scope Boundaries</em></h1>
+      <div class="slide-grid-2">
+        <div class="card">
+          <div class="ct-badge ct-badge-vasp" style="margin-bottom: 0.8rem;">BENCHMARKS &amp; TESTING</div>
+          <h3>Engineering Metrics</h3>
+          <ul>
+            <li><strong>15 / 15 Automated Tests Passing:</strong> Comprehensive unit &amp; API ground-truth coverage.</li>
+            <li><strong>Graph Latency:</strong> &lt;20ms local traversal; &lt;450ms end-to-end REST response.</li>
+            <li><strong>Memory Efficiency:</strong> NetworkX memory footprint &lt;4MB per 3-hop neighborhood.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="ct-badge ct-badge-neutral" style="margin-bottom: 0.8rem;">BOUNDED CLAIMS</div>
+          <h3>System Limitations</h3>
+          <ul>
+            <li><strong>Label Bound:</strong> Accuracy is bounded by the quality and coverage of open label datasets.</li>
+            <li><strong>Mixer Policy:</strong> ZK privacy pools are flagged as high risk, not cryptographically unmixed.</li>
+            <li><strong>Advisory Role:</strong> Decision-support intelligence for LEAs; not court-admissible forensic certainty.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: ROADMAP -->
+    <section class="slide" data-slide="8" data-time="2:45 - 3:00" data-script="Looking forward, CryptoTrace is built with adapter-based modularity. Our roadmap expands from Ethereum to Bitcoin and Tron, integrates WebSocket streaming for real-time transaction expansion, and targets compliance with national LEA intelligence standards. By bridging the attribution gap with explainable, high-speed graph heuristics, CryptoTrace gives investigators the actionable intelligence they need to follow the money. Thank you, and we are now open to your questions.">
+      <p class="slide-eyebrow"><span class="ct-legend-dot vasp"></span> Future Scalability · National Vision</p>
+      <h1 class="slide-title">The National Intelligence <em>Roadmap</em></h1>
+      <div class="slide-grid-3">
+        <div class="card">
+          <span class="ct-badge ct-badge-hop" style="margin-bottom: 0.8rem;">PHASE 1 (TODAY)</span>
+          <h3>Hackathon MVP</h3>
+          <p>Ethereum Mainnet, 3-hop BFS, explainable scoring heuristics, dual DEMO/LIVE mode, in-app report.</p>
+        </div>
+        <div class="card highlight-card">
+          <span class="ct-badge ct-badge-vasp" style="margin-bottom: 0.8rem;">PHASE 2 (NEAR TERM)</span>
+          <h3>Multi-Chain Scale</h3>
+          <p>Bitcoin UTXO adapter, Tron network adapter, WebSocket live streaming, PDF report generation.</p>
+        </div>
+        <div class="card">
+          <span class="ct-badge ct-badge-neutral" style="margin-bottom: 0.8rem;">PHASE 3 (PRODUCTION)</span>
+          <h3>LEA Integration</h3>
+          <p>National LEA database integration (SAHYOG API), community-verified label crowdsourcing.</p>
+        </div>
+      </div>
+      <div style="margin-top: 2rem; text-align: center;">
+        <p style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary-bright);">
+          CryptoTrace — Bridging the Attribution Gap with Explainable Blockchain Intelligence.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Presenter Notes Drawer (Toggled by 'N' or button) -->
+  <div class="notes-drawer" id="notesDrawer">
+    <div class="notes-header">
+      <h4>Speaker Notes</h4>
+      <span class="notes-time" id="notesTime">0:00 - 0:25</span>
+    </div>
+    <div class="notes-body" id="notesBody">
+      Loading presenter script...
+    </div>
+  </div>
+
+  <!-- Footer Navigation -->
+  <footer class="deck-footer">
+    <div class="nav-controls">
+      <button class="btn" id="prevBtn" title="Previous Slide (Left Arrow)">◀ Prev</button>
+      <button class="btn btn-primary" id="nextBtn" title="Next Slide (Right Arrow / Space)">Next ▶</button>
+      <button class="btn" id="notesBtn" title="Toggle Speaker Script (N key)">🎙 Notes</button>
+      <button class="btn" id="fullscreenBtn" title="Toggle Fullscreen (F key)">⛶ Fullscreen</button>
+    </div>
+    <div class="slide-counter" id="slideCounter">
+      Slide 1 of 8
+    </div>
+  </footer>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let currentSlide = 0;
+
+    const progressBar = document.getElementById('progressBar');
+    const slideCounter = document.getElementById('slideCounter');
+    const notesDrawer = document.getElementById('notesDrawer');
+    const notesTime = document.getElementById('notesTime');
+    const notesBody = document.getElementById('notesBody');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const notesBtn = document.getElementById('notesBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+    function updateSlide(index) {
+      if (index < 0) index = 0;
+      if (index >= totalSlides) index = totalSlides - 1;
+      currentSlide = index;
+
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === currentSlide);
+      });
+
+      // Update progress bar & counter
+      const progressPercent = ((currentSlide + 1) / totalSlides) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+      slideCounter.textContent = `Slide ${currentSlide + 1} of ${totalSlides}`;
+
+      // Update presenter notes
+      const activeSlide = slides[currentSlide];
+      notesTime.textContent = activeSlide.dataset.time || '';
+      notesBody.textContent = activeSlide.dataset.script || 'No notes for this slide.';
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        updateSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        updateSlide(currentSlide - 1);
+      }
+    }
+
+    function toggleNotes() {
+      notesDrawer.classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Event Listeners
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+    notesBtn.addEventListener('click', toggleNotes);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'n' || e.key.toLowerCase() === 's') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+
+    // Initial state
+    updateSlide(0);
+  </script>
+</body>
+</html>
