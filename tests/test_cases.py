@@ -23,7 +23,7 @@ from backend.app import create_app
 
 FROZEN_TRACE_KEYS = {
     "case_id", "chain", "input_address", "selected_vasp", "confidence",
-    "hop_distance", "path", "evidence", "risk_flags", "nodes", "edges"
+    "hop_distance", "path", "evidence", "risk_flags", "nodes", "edges", "typologies"
 }
 NODE_REQUIRED_KEYS = {"id", "label", "type", "hop", "risk"}
 EDGE_REQUIRED_KEYS = {"source", "target", "tx_hash", "value", "timestamp"}
@@ -47,7 +47,7 @@ class TestDay4GroundTruthAcceptance:
     """Step 7.2: Verify that all 3 ground truth cases return expected VASP, confidence, and risk flags."""
 
     def test_demo_cases_file_structure(self, ground_truth):
-        assert set(ground_truth.keys()) == {"CASE-001", "CASE-002", "CASE-003"}
+        assert {"CASE-001", "CASE-002", "CASE-003", "CASE-TRON-001"}.issubset(ground_truth.keys())
         for case_id, case in ground_truth.items():
             assert "target_address" in case
             assert "expected_vasp" in case
