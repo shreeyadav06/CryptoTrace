@@ -1,3 +1,5 @@
+import './LandingPage.css'
+
 function LandingPage({ onStartInvestigation }) {
   const featureCards = [
     { title: 'Wallet Tracing', copy: 'Map suspicious wallet behavior across known transaction neighborhoods.' },
@@ -13,7 +15,16 @@ function LandingPage({ onStartInvestigation }) {
           <span className="landing-brand-mark">CT</span>
           <span className="landing-brand-text">CryptoTrace</span>
         </a>
-        <a className="landing-nav-link" href="/dashboard">Investigation</a>
+        <a 
+          className="landing-nav-link" 
+          href="/dashboard"
+          onClick={(e) => {
+            e.preventDefault()
+            onStartInvestigation?.()
+          }}
+        >
+          Investigation
+        </a>
       </nav>
 
       <section className="landing-hero">
@@ -26,7 +37,7 @@ function LandingPage({ onStartInvestigation }) {
           </p>
           <div className="landing-cta-row">
             <button className="landing-cta" type="button" onClick={onStartInvestigation}>
-              Start Investigation
+              Start Investigation →
             </button>
           </div>
           <div className="landing-proof">

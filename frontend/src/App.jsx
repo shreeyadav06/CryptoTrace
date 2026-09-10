@@ -11,6 +11,11 @@ function App() {
     setRoute('/dashboard')
   }
 
+  function goToLanding() {
+    window.history.pushState({}, '', '/')
+    setRoute('/')
+  }
+
   useEffect(() => {
     function handlePopState() {
       setRoute(window.location.pathname || '/')
@@ -23,7 +28,15 @@ function App() {
     return (
       <main className="app-shell">
         <header className="topbar print-exclude">
-          <a className="brand" href="/" aria-label="CryptoTrace home">
+          <a 
+            className="brand" 
+            href="/" 
+            aria-label="CryptoTrace home"
+            onClick={(e) => {
+              e.preventDefault()
+              goToLanding()
+            }}
+          >
             <span className="brand-mark">CT</span>
             <span>CryptoTrace</span>
           </a>
