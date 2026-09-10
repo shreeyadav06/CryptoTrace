@@ -27,11 +27,12 @@ def _freeze_trace_payload(
     evidence: list,
     risk_flags: list,
     nodes: list,
-    edges: list
+    edges: list,
+    typologies: list = None
 ) -> dict:
     """
     Guarantees strict compliance with the frozen backend API JSON response contract.
-    Ensures all 11 required keys exist, correct data types, and valid node/edge shapes.
+    Ensures all 12 required keys exist, correct data types, and valid node/edge shapes.
     """
     clean_nodes = []
     for n in (nodes or []):
@@ -63,6 +64,7 @@ def _freeze_trace_payload(
         "path": [str(p) for p in (path or [])],
         "evidence": [str(ev) for ev in (evidence or [])],
         "risk_flags": [str(rf) for rf in (risk_flags or [])],
+        "typologies": [str(t) for t in (typologies or [])],
         "nodes": clean_nodes,
         "edges": clean_edges
     }
@@ -105,16 +107,11 @@ def execute_trace():
         demo_cases = _load_demo_cases()
         matched_case_id = None
         matched_case_info = None
-
-        if address in ["0x742d35cc6634c0532925a3b844bc454e4438f44e", "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a"]:
-            matched_case_id = "CASE-001"
-            matched_case_info = demo_cases.get("CASE-001")
-        else:
-            for case_id, case_data in demo_cases.items():
-                if case_data.get("target_address", "").lower() == address:
-                    matched_case_id = case_id
-                    matched_case_info = case_data
-                    break
+        for cid, cdata in demo_cases.items():
+            if cdata.get("target_address", "").strip().lower() == address:
+                matched_case_id = cid
+                matched_case_info = cdata
+                break
 
         # Step 1: Chain Adapter (Fetch raw transactions)
         raw_txs = fetch_transactions(address, mode=mode)
@@ -124,13 +121,7 @@ def execute_trace():
 
         if raw_txs:
             # Step 2: Normalizer (Standardize transaction fields)
-            if address == "0x742d35cc6634c0532925a3b844bc454e4438f44e":
-                normalized_txs = [
-                    normalize_tx({**tx, "from": address if tx.get("from", "").lower() == "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a" else tx.get("from")})
-                    for tx in raw_txs
-                ]
-            else:
-                normalized_txs = [normalize_tx(tx) for tx in raw_txs]
+            normalized_txs = [normalize_tx(tx) for tx in raw_txs]
 
             # Step 3: Graph Engine (Build NetworkX graph & extract nodes/edges)
             graph = build_transaction_graph(normalized_txs)
@@ -145,6 +136,7 @@ def execute_trace():
             path = attribution_result.get("path", [])
             evidence = attribution_result.get("evidence", [])
             risk_flags = attribution_result.get("risk_flags", [])
+            typologies = attribution_result.get("typologies", [])
 
             # Dynamic check from risk service if available (Step 2.7 by B2)
             try:
@@ -186,7 +178,8 @@ def execute_trace():
                 evidence=evidence,
                 risk_flags=risk_flags,
                 nodes=nodes,
-                edges=edges
+                edges=edges,
+                typologies=typologies
             )
             return jsonify(response_payload), 200
 
@@ -214,7 +207,8 @@ def execute_trace():
             evidence=["No outgoing/incoming transactions connecting to a known VASP within 3 hops."],
             risk_flags=risk_flags,
             nodes=[{"id": address, "label": "Target Wallet", "type": "target", "hop": 0, "risk": "NONE"}],
-            edges=[]
+            edges=[],
+            typologies=[]
         )
         return jsonify(response_payload), 200
 

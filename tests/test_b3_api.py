@@ -41,7 +41,7 @@ def test_post_trace_demo_case_1(client):
     """Test POST /api/trace with CASE-001 address."""
     payload = {
         "chain": "ethereum",
-        "address": "0x742d35cc6634c0532925a3b844bc454e4438f44e",
+        "address": "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a",
         "max_hops": 3,
         "mode": "demo"
     }
@@ -84,7 +84,7 @@ def test_get_report_not_found(client):
 
 FROZEN_TRACE_KEYS = {
     "case_id", "chain", "input_address", "selected_vasp", "confidence",
-    "hop_distance", "path", "evidence", "risk_flags", "nodes", "edges"
+    "hop_distance", "path", "evidence", "risk_flags", "nodes", "edges", "typologies"
 }
 
 NODE_REQUIRED_KEYS = {"id", "label", "type", "hop", "risk"}
@@ -126,6 +126,7 @@ def test_post_trace_frozen_contract_all_cases(client, payload, expected_vasp, ex
     assert isinstance(data["path"], list)
     assert isinstance(data["evidence"], list)
     assert isinstance(data["risk_flags"], list)
+    assert isinstance(data["typologies"], list)
     assert isinstance(data["nodes"], list)
     assert isinstance(data["edges"], list)
 
@@ -159,10 +160,62 @@ def test_post_trace_frozen_contract_all_cases(client, payload, expected_vasp, ex
 def test_post_trace_invalid_max_hops(client):
     """Ensure malformed max_hops returns structured 400 error."""
     response = client.post('/api/trace', json={
-        "address": "0x742d35cc6634c0532925a3b844bc454e4438f44e",
+        "address": "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a",
         "max_hops": "invalid_number"
     })
     assert response.status_code == 400
     data = response.get_json()
     assert "error" in data
+
+
+# --- SAHYOG Ingest Endpoint Tests (Task 3.2) ---
+
+def test_sahyog_case_ingest_missing_wallet(client):
+    """Test POST /api/sahyog/case-ingest without wallet_address returns 400."""
+    response = client.post('/api/sahyog/case-ingest', json={})
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "Missing wallet_address"}
+
+
+def test_sahyog_case_ingest_ethereum(client):
+    """Test POST /api/sahyog/case-ingest with Ethereum wallet."""
+    payload = {
+        "fir_number": "FIR-2026-CYBER-104",
+        "police_station": "Cyber Crime Police Station, Special Cell, New Delhi",
+        "complainant_loss": "50,000 USDT",
+        "wallet_address": "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a",
+        "chain": "ethereum"
+    }
+    response = client.post('/api/sahyog/case-ingest', json=payload)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["sahyog_incident_id"].startswith("SAHYOG-INC-")
+    assert data["fir_reference"] == "FIR-2026-CYBER-104"
+    assert data["status"] == "ANALYZED"
+    assert data["target_address"] == "0x85053b6941c4a71b820f4bbd4bafa3d34f943e3a"
+    assert data["chain"] == "ethereum"
+    assert data["attributed_vasp"] == "Binance"
+    assert data["confidence"] == 85
+    assert data["hop_distance"] == 2
+    assert "Peeling Chain" in data["typologies_detected"]
+    assert "Rapid Pass-Through" in data["typologies_detected"]
+    assert data["recommended_action"] == "ISSUE_SECTION_91_FREEZE_NOTICE"
+    assert data["notice_url"] == "/api/sahyog/disclosure-notice/CASE-001"
+
+
+def test_sahyog_case_ingest_tron(client):
+    """Test POST /api/sahyog/case-ingest with Tron wallet."""
+    payload = {
+        "fir_number": "FIR-2026-CYBER-104",
+        "wallet_address": "TYG6n3s2K9mXkRt8UvWz3yBc1DeFa45678",
+        "chain": "tron"
+    }
+    response = client.post('/api/sahyog/case-ingest', json=payload)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["sahyog_incident_id"].startswith("SAHYOG-INC-")
+    assert data["target_address"] == "TYG6n3s2K9mXkRt8UvWz3yBc1DeFa45678"
+    assert data["chain"] == "tron"
+    assert data["notice_url"] == "/api/sahyog/disclosure-notice/CASE-TRON-001"
+
 

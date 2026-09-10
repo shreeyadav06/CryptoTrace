@@ -1,11 +1,8 @@
 """
-B2 — Attribution + Risk Engine
-CryptoTrace, PS-182
-
 B3's route calls: rank_vasp_candidates(graph, address)
-Must return: selected_vasp, confidence, hop_distance, path, evidence, risk_flags
+Must return: selected_vasp, confidence, hop_distance, path, evidence, risk_flags, typologies
 
-labels.json schema (current): {"label", "name", "category", "type"}
+labels.json schema (current): {"label", "name", "category", "type", "entity_type"}
 High-risk entries use "type": "high_risk" or "category": "sanctioned" — NOT a "risk" field.
 ofac.json is a flat address list, kept as a secondary safety net.
 """
@@ -14,6 +11,7 @@ import json
 import os
 from services.graph_engine import _bfs_trace
 from services.labels import get_address_label
+from services.typology import detect_laundering_typologies
 
 HOP_WEIGHTS = {0: 100, 1: 90, 2: 75, 3: 60}
 MIN_CONFIDENCE_THRESHOLD = 30
@@ -43,6 +41,33 @@ def _display_name(info: dict) -> str:
     return info.get("label") or info.get("name") or "Unknown Entity"
 
 
+def _extract_path_transactions(G, path: list) -> list[dict]:
+    """Rebuild a transactions list along the resolved path, from graph edge data."""
+    txs = []
+    for i in range(len(path) - 1):
+        u, v = path[i], path[i + 1]
+        if G.has_edge(u, v):
+            edge = G[u][v]
+            txs.append({
+                "from": u,
+                "to": v,
+                "value": edge.get("value", 0.0),
+                "timestamp": edge.get("timestamp", ""),
+            })
+    return txs
+
+
+def _build_path_nodes(path: list) -> list[dict]:
+    nodes = []
+    for addr in path:
+        info = get_address_label(addr)
+        nodes.append({
+            "label": _display_name(info) if info else "Unknown",
+            "entity_type": (info.get("entity_type") if info else "unknown") or "unknown",
+        })
+    return nodes
+
+
 def rank_vasp_candidates(G, address: str) -> dict:
     address = address.lower()
     trace_result = _bfs_trace(G, address, max_hops=MAX_HOPS_DEFAULT)
@@ -61,6 +86,7 @@ def rank_vasp_candidates(G, address: str) -> dict:
             "path": [address],
             "evidence": [f"Target wallet is itself a directly labelled {_display_name(direct_info)} address ({direct_info.get('type', 'Unknown type')})."],
             "risk_flags": risk_flags,
+            "typologies": [],
         }
 
     if address in _OFAC_ADDRESSES:
@@ -72,6 +98,7 @@ def rank_vasp_candidates(G, address: str) -> dict:
             "path": [address],
             "evidence": ["Target wallet address is directly listed on the OFAC SDN sanctions list."],
             "risk_flags": risk_flags,
+            "typologies": [],
         }
 
     if not trace_result["reached"] or not trace_result["nodes"]:
@@ -106,6 +133,7 @@ def rank_vasp_candidates(G, address: str) -> dict:
             "path": path,
             "evidence": [f"{ofac_only_hit['hop_distance']}-hop relationship to an OFAC SDN-listed address."],
             "risk_flags": risk_flags,
+            "typologies": [],
         }
 
     if not candidates:
@@ -130,6 +158,13 @@ def rank_vasp_candidates(G, address: str) -> dict:
     if path_count > 1:
         evidence.append(f"{path_count} independent transaction paths support this connection.")
 
+    # --- Typology detection ---
+    path_txs = _extract_path_transactions(G, path)
+    path_nodes = _build_path_nodes(path)
+    typologies = detect_laundering_typologies(path_txs, path, path_nodes)
+    if "Peeling Chain" in typologies:
+        evidence.append("Peeling chain transfer pattern identified across transaction hops.")
+
     return {
         "selected_vasp": _display_name(best_info),
         "confidence": confidence,
@@ -137,6 +172,7 @@ def rank_vasp_candidates(G, address: str) -> dict:
         "path": path,
         "evidence": evidence,
         "risk_flags": risk_flags,
+        "typologies": typologies,
     }
 
 
@@ -148,4 +184,5 @@ def _no_attribution(reason: str, risk_flags: list) -> dict:
         "path": [],
         "evidence": [reason],
         "risk_flags": risk_flags,
+        "typologies": [],
     }
