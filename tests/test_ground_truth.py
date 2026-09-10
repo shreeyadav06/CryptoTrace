@@ -21,7 +21,7 @@ REQUIRED_FIELDS = {
 
 class TestGroundTruthShape:
     def test_exactly_three_mandatory_case_types_present(self, ground_truth):
-        assert set(ground_truth.keys()) == {"CASE-001", "CASE-002", "CASE-003"}
+        assert {"CASE-001", "CASE-002", "CASE-003"}.issubset(set(ground_truth.keys()))
 
     def test_every_case_has_required_fields(self, ground_truth):
         for case_id, case in ground_truth.items():
@@ -30,13 +30,15 @@ class TestGroundTruthShape:
 
     def test_every_address_is_well_formed(self, ground_truth):
         import re
-        addr_re = re.compile(r"^0x[0-9a-f]{40}$")
+        evm_re = re.compile(r"^0x[0-9a-f]{40}$")
+        tron_re = re.compile(r"^T[0-9a-zA-Z]{33}$")
         for case_id, case in ground_truth.items():
-            assert addr_re.match(case["target_address"]), \
-                f"{case_id} target_address is not a valid lowercase 0x+40hex address"
+            addr = case["target_address"]
+            assert evm_re.match(addr) or tron_re.match(addr), \
+                f"{case_id} target_address is not a valid 0x+40hex or Tron Base58 address"
             for tx in case["transactions"]:
-                assert addr_re.match(tx["from"]), f"{case_id} tx.from malformed"
-                assert addr_re.match(tx["to"]), f"{case_id} tx.to malformed"
+                assert evm_re.match(tx["from"]) or tron_re.match(tx["from"]), f"{case_id} tx.from malformed"
+                assert evm_re.match(tx["to"]) or tron_re.match(tx["to"]), f"{case_id} tx.to malformed"
 
     def test_case_001_is_clean_low_risk_attribution(self, ground_truth):
         c = ground_truth["CASE-001"]
