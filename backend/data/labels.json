@@ -1,0 +1,72 @@
+{
+  "0xf977814e90da44bfa03b6295a0616a897441acec": {
+    "label": "Binance",
+    "name": "Binance: Hot Wallet 20",
+    "category": "exchange",
+    "type": "vasp",
+    "entity_type": "hot_wallet"
+  },
+  "0x28c6c06298d514db089934071355e5743bf21d60": {
+    "label": "Binance",
+    "name": "Binance: Hot Wallet 8",
+    "category": "exchange",
+    "type": "vasp",
+    "entity_type": "cex"
+  },
+  "0x7160ec948a015dd730042da923b7e60076a9be8c": {
+    "label": "Coinbase",
+    "name": "Coinbase: Hot Wallet",
+    "category": "exchange",
+    "type": "vasp",
+    "entity_type": "cex"
+  },
+  "0x2910543af39aba0cd09dbb2d50200b3e800a63d2": {
+    "label": "Kraken",
+    "name": "Kraken: Hot Wallet",
+    "category": "exchange",
+    "type": "vasp",
+    "entity_type": "cex"
+  },
+  "0x098b716b8aaf21512996dc57eb0615e2383e2f96": {
+    "label": "OFAC SDN: Lazarus Group (DPRK) - Ronin Bridge Exploiter",
+    "name": "OFAC SDN: Lazarus Group",
+    "category": "sanctioned",
+    "type": "high_risk",
+    "entity_type": "sanctioned_syndicate"
+  },
+  "0xd90e2f925da726b50c4ed8d0fb90ad053324f31b": {
+    "label": "Tornado Cash: Router",
+    "name": "Tornado Cash: Router",
+    "category": "mixer",
+    "type": "high_risk",
+    "entity_type": "mixer"
+  },
+  "0x5c7d6712dfaf60e64b1092ec5712333d0799f7d3": {
+    "label": "Across: Bridge",
+    "name": "Across Protocol Bridge",
+    "category": "bridge",
+    "type": "vasp",
+    "entity_type": "defi_bridge"
+  },
+  "0x8731d54e9d02c271b964e42c0825f813241ea5df": {
+    "label": "Stargate: Bridge",
+    "name": "Stargate Router",
+    "category": "bridge",
+    "type": "vasp",
+    "entity_type": "defi_bridge"
+  },
+  "tmua6yqfcex8ehbfyeg5y7s4dqzsj3wjpp": {
+    "label": "Binance",
+    "name": "Binance: TRC20 Hot Wallet",
+    "category": "exchange",
+    "type": "vasp",
+    "entity_type": "cex"
+  },
+  "tkzxdsv2fzkqreqkkVgp5dcwexbEkmg2ax": {
+    "label": "SunSwap: V2 Router",
+    "name": "SunSwap V2 Router (Tron)",
+    "category": "bridge",
+    "type": "vasp",
+    "entity_type": "defi_bridge"
+  }
+}
