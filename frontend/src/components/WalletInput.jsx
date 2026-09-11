@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const CHAINS = ['Ethereum', 'Tron (TRC-20)', 'Bitcoin', 'Polygon', 'Arbitrum']
+const CHAINS = ['Ethereum', 'Tron (TRC-20)', 'Polygon', 'Arbitrum']
 
 const PRESET_CASES = [
   {
