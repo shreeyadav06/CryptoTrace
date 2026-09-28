@@ -1,6 +1,17 @@
+[project]
+name = "cryptotrace"
+version = "0.1.0"
+description = "CryptoTrace Blockchain Analytics & Tracing Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "Flask>=3.0.0",
+    "Flask-Cors>=4.0.0",
+    "networkx>=3.2.1",
+]
+
 [tool.vercel]
 entrypoint = "backend.app:app"
 
 [tool.pyright]
 extraPaths = ["backend"]
-
