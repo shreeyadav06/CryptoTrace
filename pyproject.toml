@@ -1,0 +1,6 @@
+[tool.vercel]
+entrypoint = "backend.app:app"
+
+[tool.pyright]
+extraPaths = ["backend"]
+

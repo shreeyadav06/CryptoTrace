@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { API_BASE_URL } from '../services/api'
 
 function formatDate(value) {
   const date = value ? new Date(value) : new Date()
@@ -256,7 +257,7 @@ function Report({ result, onBack }) {
     const caseId = result?.case_id || 'CASE-001'
     try {
       // Attempt to fetch from backend SAHYOG endpoint
-      const res = await fetch(`http://localhost:5000/api/sahyog/disclosure-notice/${caseId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/sahyog/disclosure-notice/${caseId}`, {
         signal: AbortSignal.timeout(3000)
       })
       if (res.ok) {

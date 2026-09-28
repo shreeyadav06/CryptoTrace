@@ -1,11 +1,26 @@
+import os
+import sys
+
+# Ensure backend directory is on sys.path so routes and services can be resolved
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+
 from flask import Flask
 from flask_cors import CORS
 
-from routes.health import health_bp
-from routes.cases import cases_bp
-from routes.trace import trace_bp
-from routes.report import report_bp
-from routes.sahyog import sahyog_bp
+try:
+    from backend.routes.health import health_bp
+    from backend.routes.cases import cases_bp
+    from backend.routes.trace import trace_bp
+    from backend.routes.report import report_bp
+    from backend.routes.sahyog import sahyog_bp
+except ImportError:
+    from routes.health import health_bp
+    from routes.cases import cases_bp
+    from routes.trace import trace_bp
+    from routes.report import report_bp
+    from routes.sahyog import sahyog_bp
 
 def create_app():
     app = Flask(__name__)
