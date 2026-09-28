@@ -10,8 +10,5 @@ dependencies = [
     "networkx>=3.2.1",
 ]
 
-[tool.vercel]
-entrypoint = "backend.app:app"
-
 [tool.pyright]
 extraPaths = ["backend"]
